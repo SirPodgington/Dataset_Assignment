@@ -1,19 +1,28 @@
 
 class ExpenseByYear
 {
-  float year;
-  int countrySize = 27;
-  float[] spent = new float[countrySize];
-  String countries[] = {"Canada", "USA", "Albania", "Belgium", "Bulgaria", "Croatia", "Czech Republic", "Denmark", "Estonia", "France", "Germany", "Greece", "Hungary", "Italy", "Latvia", "Lithuania", "Luxembourg", "Netherlands", "Norway", "Poland", "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Turkey", "UK"};
+  String country;
+  String currency;
+  int yearSize = (2014 - 1949) + 1;
+  float[] year = new float[yearSize];
+  color colour;
   
   ExpenseByYear(String line)
   {
     String[] lineElements = line.split(",");
-    year = Float.parseFloat(lineElements[0]);
-    for (int i = 0; i < countrySize; i++)
+    country = lineElements[0];
+    currency = lineElements[1];
+    colour = color(random(0,255), random(0,255), random(0,255));
+    
+    for (int i = 0; i < yearSize; i++)
     {
-      spent[i] = Float.parseFloat(lineElements[i+1]);
+      if (lineElements[i+2].isEmpty())
+      {
+        year[i] = 0.0f;
+      }
+      else year[i] = Float.parseFloat(lineElements[i+2]);
     }
   }
   
 }
+
