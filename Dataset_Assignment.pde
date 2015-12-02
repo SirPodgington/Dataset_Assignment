@@ -5,18 +5,30 @@ void setup()
    smooth();
    
    pageKey = 0;
-   yearlyGraphBG = loadImage("lgraph.jpg");
+   linegraphBG = loadImage("Navy_Blue_Background.jpg");
+   linegraphBG.resize(width, height);
    
    // Country Button Colours
-   countryButton = color(0);   // Default
-   countryButtonMO = color(255,0,0);  // MouseOver
+   coButtonCol = color(0);            // Default
+   coButtonMOCol = color(0,150,255);  // MouseOver
+   coButtonLabelCol = color(255);     // Label
    
-   // Load Data Into ArrayLists
-   loadExpensesCountry();
+   // Graph Colours
+   graphLineCol = color(0);      // Graph Line
+   graphAxisCol = color(0);      // Graph Axis
+   graphMOLineCol = color(0,255,255);    // MouseOver Line
+   graphMOTxtCol = color(0,255,255);     // MouseOver Text
+   
+   loadExpensesCountry();   // Load Data Into ArrayLists
+   getTotal();   // Get Total Spent By Each Country
 }
 
 
-/************  RETURN TO MENU  ************/
+/************************
+                      *************************************************************************************************************************************************************************
+    RETURN TO MENU    *************************************************************************************************************************************************************************
+                      *************************************************************************************************************************************************************************
+************************/
 
 void returnToMenu()
 {
@@ -28,18 +40,19 @@ void returnToMenu()
    textAlign(CENTER,CENTER);
    text(menuString, menuPos.x, menuPos.y);
    
-   if (keyPressed && key == 'M')
+   if (keyPressed && (key == 'M' || key == 'm'))
    {
       pageKey = 0;
    }
 }
 
 
-//********************************************************************************************************************************************************************************************
 
-
-
-//********************************************************************************************************************************************************************************************
+/************************
+                      *************************************************************************************************************************************************************************
+      MAIN MENU       *************************************************************************************************************************************************************************
+                      *************************************************************************************************************************************************************************
+************************/
 
 void drawMenu()
 {
@@ -68,45 +81,12 @@ void drawMenu()
 }
 
 
-/************************
-                      *************************************************************************************************************************************************************************
-     Second Graph     *************************************************************************************************************************************************************************
-                      *************************************************************************************************************************************************************************
-************************/
-
-
-void overallSpent()
-{
-  
-}
-
 
 /************************
                       *************************************************************************************************************************************************************************
-  COUNTRY LINEGRAPH   *************************************************************************************************************************************************************************
+      LOAD DATA       *************************************************************************************************************************************************************************
                       *************************************************************************************************************************************************************************
 ************************/
-
-
-String country[] = 
-{"Canada","USA","Albania","Belgium","Bulgaria","Croatia","Czech Rep","Denmark","Estonia",
-"France","Germany","Greece","Hungary","Italy","Latvia","Lithuania","Luxembourg","Netherlands",
-"Norway","Poland","Portugal","Romania","Slovakia","Slovenia","Spain","Turkey","UK"};
-int countryCount = 27;
-int countryID = 0;                                                                        // References the arraylist position of the requested country -> Initialised to 0 (first country position)
-int countryMaxRange[] =                                                                   // Stores the max range values for all countries
-{16000, 750000, 200, 5000, 1000, 1500, 2500, 30000, 500, 50000, 40000, 10000, 1500,
-30000, 600, 500, 300, 10000, 5000, 10000, 4000, 2000, 1000, 750, 15000, 15000, 60000};
-PImage yearlyGraphBG;                                                                     // Background for the page
-color countryGraphLine;
-color countryButton;
-color countryButtonMO;
-
-
-
-//*****************************************
-//**************  LOAD DATA ***************
-//*****************************************
 
 ArrayList<ExpenseByCountry> expenseByCountry = new ArrayList<ExpenseByCountry>();
 
@@ -122,9 +102,45 @@ void loadExpensesCountry()
 
 
 
-//*****************************************
-//*************  DRAW GRAPH ***************
-//*****************************************
+/************************
+                      *************************************************************************************************************************************************************************
+  COUNTRY LINEGRAPH   *************************************************************************************************************************************************************************
+                      *************************************************************************************************************************************************************************
+************************/
+
+String country[] = 
+{"Canada","USA","Albania","Belgium","Bulgaria","Croatia","Czech Rep","Denmark","Estonia",
+"France","Germany","Greece","Hungary","Italy","Latvia","Lithuania","Luxembourg","Netherlands",
+"Norway","Poland","Portugal","Romania","Slovakia","Slovenia","Spain","Turkey","UK"};
+int coMaxRange[] =
+{16000, 750000, 200, 5000, 1000, 1500, 2500, 30000, 500, 50000, 40000, 10000, 1500,      // Stores the max range values for all countries
+30000, 600, 500, 300, 10000, 5000, 10000, 4000, 2000, 1000, 750, 15000, 15000, 60000};
+int countryCount = 27;
+float coTotalSpent[] = new float[countryCount];      // Array to store total spent for each country
+int countryID = 0;                                   // References the arraylist position of the requested country -> Initialised to 0 (first country position)
+PImage linegraphBG;                                  // Background for the page
+
+color coButtonCol;
+color coButtonMOCol;
+color coButtonLabelCol;
+color graphLineCol;
+color graphAxisCol;
+color graphMOLineCol;
+color graphMOTxtCol;
+
+// Method to get total spent by each country
+void getTotal()
+{
+   for (int i = 0; i < expenseByCountry.size(); i++)
+   {
+      ExpenseByCountry loadTotal = expenseByCountry.get(i);
+      for (float amount:loadTotal.spent)
+      {
+         coTotalSpent[i] += amount;
+      }
+      println(coTotalSpent[i]);
+   }
+}
 
 void yearlyGraphs()
 {
@@ -147,7 +163,7 @@ void yearlyGraphs()
    int xAxisStartVal = 1949;
    int xAxisEndVal = 2014;
    int yAxisStartVal = 0;
-   int yAxisEndVal = countryMaxRange[countryID];
+   int yAxisEndVal = coMaxRange[countryID];
      
    // X-Axis
    line(xBoundry, yBoundry, xBoundry+xLength, yBoundry);
@@ -179,32 +195,36 @@ void yearlyGraphs()
       ExpenseByCountry next = expenseByCountry.get(i);
       float prevX = map(i-1, 0, (expenseByCountry.size() - 1), boundrySize, width - boundrySize);
       float nextX = map(i, 0, (expenseByCountry.size() - 1), boundrySize, width - boundrySize);
-      float prevY = map(prev.spent[countryID], 0, countryMaxRange[countryID], yBoundry, boundrySize);
-      float nextY = map(next.spent[countryID], 0, countryMaxRange[countryID], yBoundry, boundrySize);
+      float prevY = map(prev.spent[countryID], 0, coMaxRange[countryID], yBoundry, boundrySize);
+      float nextY = map(next.spent[countryID], 0, coMaxRange[countryID], yBoundry, boundrySize);
       stroke(0);
       strokeWeight(2);
       line(prevX, prevY, nextX, nextY);
        
-      // Mouse-Over feature
-      stroke(255,0,0);
-      strokeWeight(2);
-      fill(200,0,0);
-      textAlign(LEFT, CENTER);
-      textSize(19);
-      float yearCaptionX = xBoundry + 15;
-      float yearCaptionY = boundrySize + 5;
-      String yearVal = "Year: " + (int)prev.year;
-      float spentCaptionX = yearCaptionX;
-      float spentCaptionY = yearCaptionY + 25;
-      String spentVal = "Spent (Mil.€): " + prev.spent[countryID];
+      /********** MouseOver Feature **********/
     
       if (mouseY < yBoundry && mouseY > boundrySize)
       {
          if (mouseX > prevX && mouseX < nextX)
          {
+            fill(200,0,0);
+            textAlign(LEFT, CENTER);
+            textSize(19);
+            PVector yearStringPos = new PVector(xBoundry + 15, boundrySize + 5);
+            PVector spentStringPos = new PVector(yearStringPos.x, yearStringPos.y + 25);
+            String yearVal = "Year: " + (int)prev.year;
+            String spentVal = "Spent (Mil.€): " + prev.spent[countryID];
+            
+            // MouseOver Line
+            stroke(graphMOLineCol);
             line(mouseX, yBoundry, mouseX, boundrySize);
-            text(yearVal, yearCaptionX, yearCaptionY);
-            text(spentVal, spentCaptionX, spentCaptionY);
+            
+            // MouseOver Data
+            fill(graphMOTxtCol);
+            textAlign(LEFT, CENTER);
+            textSize(19);
+            text(yearVal, yearStringPos.x, yearStringPos.y);
+            text(spentVal, spentStringPos.x, spentStringPos.y);
          }
       }
    }
@@ -235,17 +255,16 @@ void yearlyGraphs()
       // If Mouse Is Over Button -- Else If Button Pressed -- Else..
       if (mouseX > buttonX && mouseX < (buttonX + buttonWidth) && mouseY < buttonHeight)
       {
-         fill(countryButtonMO);
-         stroke(countryButtonMO);
+         fill(coButtonMOCol);
+         stroke(coButtonMOCol);
          
-         if (mousePressed) countryID = i;
+      if (mousePressed) countryID = i;
       }
       else 
       {
-         fill(countryButton);
-         stroke(countryButton);
+         fill(coButtonCol);
+         stroke(coButtonCol);
       }
-      
       rect(buttonX, 0, buttonWidth, buttonHeight);
     
       // Button Label
@@ -259,11 +278,24 @@ void yearlyGraphs()
 
 
 
-/*********************************************************************************************************************************************************************************************
-**********************************************************************************************************************************************************************************************
-**********************************************************************************************************************************************************************************************
-**********************************************************************************************************************************************************************************************
-*********************************************************************************************************************************************************************************************/
+/************************
+                      *************************************************************************************************************************************************************************
+     Second Graph     *************************************************************************************************************************************************************************
+                      *************************************************************************************************************************************************************************
+************************/
+
+void overallSpent()
+{
+  
+}
+
+
+
+/************************
+                      *************************************************************************************************************************************************************************
+     DRAW METHOD      *************************************************************************************************************************************************************************
+                      *************************************************************************************************************************************************************************
+************************/
 
 int pageKey;   // Stores Page IDs
 
@@ -280,7 +312,7 @@ void draw()
    // YEARLY GRAPH PAGE
    if (pageKey == 1)
    {  
-      background(yearlyGraphBG);
+      background(linegraphBG);
       yearlyGraphs();
       returnToMenu();
    }
@@ -289,7 +321,8 @@ void draw()
    if (pageKey == 2)
    {
       background(255,0,0);
-      //draw_?_();
+      overallSpent();
+      returnToMenu();
    }
    
 }
