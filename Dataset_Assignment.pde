@@ -1,32 +1,43 @@
-String countryAbbrev[] = {"CAN", "USA", "AL", "BE", "BG", "HR", "CZ", "DK", "EE", "FR", "GER", "GR", "HU", "IT", "LV", "LT", "LU", "NL", "NO", "PL", "PT", "RO", "SK", "SI", "ES", "TR", "UK"};  // Country Abbreviations
-int countryCount = countryAbbrev.length;    // The amount of countries
-int pageKey;   // Stores Page IDs
-float halfWidth = width / 2;
-float halfHeight = height / 2;
 
 void setup()
 {
    size(1000, 600);
+   smooth();
+   
    pageKey = 0;
    yearlyGraphBG = loadImage("lgraph.jpg");
    
-   loadExpensesYearly();
+   // Country Button Colours
+   countryButton = color(0);   // Default
+   countryButtonMO = color(255,0,0);  // MouseOver
+   
+   // Load Data Into ArrayLists
    loadExpensesCountry();
 }
 
-//********************************************************************************************************************************************************************************************
 
-ArrayList<ExpenseByCountry> expenseByCountry = new ArrayList<ExpenseByCountry>();
+/************  RETURN TO MENU  ************/
 
-void loadExpensesCountry()
+void returnToMenu()
 {
-   String[] lines = loadStrings("expensesByCountry.csv");
-   for (String line:lines)
+   String menuString = "Return to Main Menu [Press M]";
+   PVector menuPos = new PVector(width / 2, height - 20);
+   
+   fill(0);
+   textSize(16);
+   textAlign(CENTER,CENTER);
+   text(menuString, menuPos.x, menuPos.y);
+   
+   if (keyPressed && key == 'M')
    {
-      ExpenseByCountry byCountry = new ExpenseByCountry(line);
-      expenseByCountry.add(byCountry);
+      pageKey = 0;
    }
 }
+
+
+//********************************************************************************************************************************************************************************************
+
+
 
 //********************************************************************************************************************************************************************************************
 
@@ -47,9 +58,22 @@ void drawMenu()
    text(option1, textX, opt1Y);
    text(option2, textX, opt2Y);
    text(option3, textX, opt3Y);
+   
+   if (keyPressed)
+   {
+      if (key == '1') pageKey = 1;
+      if (key == '2') pageKey = 2;
+      if (key == '3') System.exit(0);
+   }
 }
 
-//********************************************************************************************************************************************************************************************
+
+/************************
+                      *************************************************************************************************************************************************************************
+     Second Graph     *************************************************************************************************************************************************************************
+                      *************************************************************************************************************************************************************************
+************************/
+
 
 void overallSpent()
 {
@@ -57,32 +81,42 @@ void overallSpent()
 }
 
 
-/*********************************************************************************************************************************************************************************************
-**********************************************************************************************************************************************************************************************
-**********************************************************************************************************************************************************************************************
-**********************************************************************************************************************************************************************************************
-*********************************************************************************************************************************************************************************************/
+/************************
+                      *************************************************************************************************************************************************************************
+  COUNTRY LINEGRAPH   *************************************************************************************************************************************************************************
+                      *************************************************************************************************************************************************************************
+************************/
 
-// Yearly Graph
 
-ArrayList<ExpenseByYear> expenseByYear = new ArrayList<ExpenseByYear>();
+String country[] = 
+{"Canada","USA","Albania","Belgium","Bulgaria","Croatia","Czech Rep","Denmark","Estonia",
+"France","Germany","Greece","Hungary","Italy","Latvia","Lithuania","Luxembourg","Netherlands",
+"Norway","Poland","Portugal","Romania","Slovakia","Slovenia","Spain","Turkey","UK"};
+int countryCount = 27;
 int countryID = 0;                                                                        // References the arraylist position of the requested country -> Initialised to 0 (first country position)
 int countryMaxRange[] =                                                                   // Stores the max range values for all countries
 {16000, 750000, 200, 5000, 1000, 1500, 2500, 30000, 500, 50000, 40000, 10000, 1500,
 30000, 600, 500, 300, 10000, 5000, 10000, 4000, 2000, 1000, 750, 15000, 15000, 60000};
 PImage yearlyGraphBG;                                                                     // Background for the page
+color countryGraphLine;
+color countryButton;
+color countryButtonMO;
 
 
 
-// Load Data Into ArrayList
+//*****************************************
+//**************  LOAD DATA ***************
+//*****************************************
 
-void loadExpensesYearly()
+ArrayList<ExpenseByCountry> expenseByCountry = new ArrayList<ExpenseByCountry>();
+
+void loadExpensesCountry()
 {
-   String[] lines = loadStrings("expensesByYear.csv");
+   String[] lines = loadStrings("expensesByCountry.csv");
    for (String line:lines)
    {
-       ExpenseByYear byYear = new ExpenseByYear(line);
-       expenseByYear.add(byYear);
+      ExpenseByCountry byCountry = new ExpenseByCountry(line);
+      expenseByCountry.add(byCountry);
    }
 }
 
@@ -95,7 +129,7 @@ void loadExpensesYearly()
 void yearlyGraphs()
 {
    
-   /*************** LINEGRAPH ***************/
+   /*************** AXIS ***************/
    
    // Boundry Properties
    int boundrySize = width / 10;
@@ -176,67 +210,53 @@ void yearlyGraphs()
    }
    
    
-  /*************** RETURN TO MENU ***************/
-  
-  String returnMenu = "Return to Main Menu [Press M]";
-  textSize(16);
-  textAlign(CENTER,CENTER);
-  fill(0);
-  float menuX = halfWidth;
-  float menuY = height - 20;
-  text(returnMenu, menuX, menuY);
-}
-
-
-
-//*****************************************
-//*************  BUTTONS  *****************
-//*****************************************
-
-void countryButtons()
-{
+   /*************** TITLE ***************/
+   
+   String title = country[countryID];
+   PVector titlePos = new PVector(width/2, 60);
+   fill(255);
+   textAlign(CENTER, CENTER);
+   textSize(22);
+   text(title.toUpperCase(), titlePos.x, titlePos.y);
+   
+   
+   /*************** COUNTRY BUTTONS ***************/
    
    // Button Properties
    float buttonWidth = (float) width / countryCount;
    int buttonHeight = 20;
+   String countryAbbrev[] = {"CAN", "USA", "AL", "BE", "BG", "HR", "CZ", "DK", "EE", "FR", "GER", "GR", "HU", "IT", "LV", "LT", "LU", "NL", "NO", "PL", "PT", "RO", "SK", "SI", "ES", "TR", "UK"};
    
    // Button Code ... Display & Function
    for (int i = 0; i < countryCount; i++)   // Button For Each Country
    {
       float buttonX = buttonWidth * i;
       
-      // If Mouse Is Over Button ... 
+      // If Mouse Is Over Button -- Else If Button Pressed -- Else..
       if (mouseX > buttonX && mouseX < (buttonX + buttonWidth) && mouseY < buttonHeight)
       {
-         fill(255,0,0);
-         if (mousePressed) 
-         {
-            countryID = i;
-         }
+         fill(countryButtonMO);
+         stroke(countryButtonMO);
+         
+         if (mousePressed) countryID = i;
       }
       else 
-         fill(0);
+      {
+         fill(countryButton);
+         stroke(countryButton);
+      }
       
       rect(buttonX, 0, buttonWidth, buttonHeight);
-      // line(buttonX, 0, buttonX, buttonHeight);
     
       // Button Label
-      float labelX = buttonX + (buttonWidth / 2);
-      float labelY = buttonHeight / 2;
+      PVector labelPos = new PVector(buttonX + (buttonWidth / 2), buttonHeight / 2);
       fill(255);
       textAlign(CENTER, CENTER);
       textSize(12);
-      text(countryAbbrev[i], labelX, labelY);
+      text(countryAbbrev[i], labelPos.x, labelPos.y);
    }
-  
-  // Graph Title (country name)
-  ExpenseByYear countryName = expenseByYear.get(countryID + 1);
-  String graphTitle = countryName.country;
-  float titleX = halfWidth;
-  textAlign(CENTER, CENTER);
-  textSize(22);
-  text(graphTitle.toUpperCase(), halfWidth, (boundrySize + buttonHeight) / 2);
 }
+
 
 
 /*********************************************************************************************************************************************************************************************
@@ -245,44 +265,31 @@ void countryButtons()
 **********************************************************************************************************************************************************************************************
 *********************************************************************************************************************************************************************************************/
 
+int pageKey;   // Stores Page IDs
 
 void draw()
 {
   
-  // MAIN MENU *********************************
-  if (pageKey == 0)
-  {
-    background(0);
-    drawMenu();
-    
-    if (keyPressed)
-    {
-      if (key == '1') pageKey = 1;
-      if (key == '2') pageKey = 2;
-      if (key == '3') System.exit(0);
-    }
-  }
-  // END OF MAIN MENU **************************
+   // MAIN MENU
+   if (pageKey == 0)
+   {
+      background(0);
+      drawMenu();  
+   }
   
-  
-  
-  if (pageKey == 1 || pageKey == 2)
-  {
-    if (keyPressed && (key == 'M' || key == 'm'))
-      pageKey = 0;
-    
-    // YEARLY GRAPH PAGE
-    if (pageKey == 1)
-    {  
+   // YEARLY GRAPH PAGE
+   if (pageKey == 1)
+   {  
       background(yearlyGraphBG);
       yearlyGraphs();
-    }
-    
-    // OVERALL SPENT PAGE
-    if (pageKey == 2)
-    {
+      returnToMenu();
+   }
+ 
+   // OVERALL SPENT PAGE
+   if (pageKey == 2)
+   {
       background(255,0,0);
       //draw_?_();
-    }
-  }
+   }
+   
 }

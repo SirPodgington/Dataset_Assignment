@@ -13,5 +13,4 @@ class ExpenseByCountry
       spent[i] = Float.parseFloat(lineElements[i+1]);
     }
   }
-  
 }
