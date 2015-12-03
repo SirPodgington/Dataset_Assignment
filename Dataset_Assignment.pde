@@ -1,3 +1,4 @@
+String countryAbbrev[] = {"CAN", "USA", "AL", "BE", "BG", "HR", "CZ", "DK", "EE", "FR", "GER", "GR", "HU", "IT", "LV", "LT", "LU", "NL", "NO", "PL", "PT", "RO", "SK", "SI", "ES", "TR", "UK"};
 
 void setup()
 {
@@ -5,22 +6,40 @@ void setup()
    smooth();
    
    pageKey = 0;
+   
+   // Graph Properties
    linegraphBG = loadImage("Navy_Blue_Background.jpg");
    linegraphBG.resize(width, height);
    
-   // Country Button Colours
+   graphLineCol = color(0);      // Graph Line
+   graphAxisCol = color(255);      // Graph Axis
+   graphAxisTxtCol = color(255);
+   graphMOLineCol = color(0,255,255);    // MouseOver Line
+   graphMOTxtCol = color(0,255,255);     // MouseOver Text
+   graphTitleCol = color(255);
+   graphTitleTxtSize = 26;
+   graphAxisTxtSize = 16;
+   
+   // Country Button Colours & Font Size
    coButtonCol = color(0);            // Default
    coButtonMOCol = color(0,150,255);  // MouseOver
    coButtonLabelCol = color(255);     // Label
+   coButtonTxtSize = 12;
    
-   // Graph Colours
-   graphLineCol = color(0);      // Graph Line
-   graphAxisCol = color(0);      // Graph Axis
-   graphMOLineCol = color(0,255,255);    // MouseOver Line
-   graphMOTxtCol = color(0,255,255);     // MouseOver Text
+   // Return To Menu Colour & Font Size
+   retToMenuCol = color(0);
+   retToMenuTxtSize = 26;
+   
+   // Barchart Colours & Font Size
+   barchartBG = loadImage("");
+   barchartBG.resize(width, height);
+   barAxisCol = colour(255);
+   
+   // Main Menu Colours & Font Size
+   menuOptsCol = color(0,255,255);
+   menuOptsTxtSize = 30;
    
    loadExpensesCountry();   // Load Data Into ArrayLists
-   getTotal();   // Get Total Spent By Each Country
 }
 
 
@@ -30,14 +49,17 @@ void setup()
                       *************************************************************************************************************************************************************************
 ************************/
 
+color retToMenuCol;
+int retToMenuTxtSize;
+
 void returnToMenu()
 {
-   String menuString = "Return to Main Menu [Press M]";
-   PVector menuPos = new PVector(width / 2, height - 20);
-   
-   fill(0);
-   textSize(16);
+   fill(retToMenuCol);
+   textSize(retToMenuTxtSize);
    textAlign(CENTER,CENTER);
+  
+   String menuString = "Return to Main Menu [Press M]";
+   PVector menuPos = new PVector(width / 2, height - (boundrySize/2));
    text(menuString, menuPos.x, menuPos.y);
    
    if (keyPressed && (key == 'M' || key == 'm'))
@@ -54,12 +76,11 @@ void returnToMenu()
                       *************************************************************************************************************************************************************************
 ************************/
 
+color menuOptsCol;
+int menuOptsTxtSize;
+
 void drawMenu()
 {
-   fill(255);
-   textAlign(LEFT,CENTER);
-   textSize(18);
-     
    float textX = width * 0.3f;
    float opt1Y = height * 0.4f;
    float opt2Y = height * 0.5f;
@@ -67,7 +88,11 @@ void drawMenu()
    String option1 = "Military Expenses Per Year [Press 1]";
    String option2 = "Overall Military Expenses [Press 2]";
    String option3 = "Exit [Press 3]";
-     
+   
+   fill(menuOptsCol);
+   textAlign(LEFT,CENTER);
+   textSize(menuOptsTxtSize);
+   
    text(option1, textX, opt1Y);
    text(option2, textX, opt2Y);
    text(option3, textX, opt3Y);
@@ -88,15 +113,15 @@ void drawMenu()
                       *************************************************************************************************************************************************************************
 ************************/
 
-ArrayList<ExpenseByCountry> expenseByCountry = new ArrayList<ExpenseByCountry>();
+ArrayList<LoadData> militaryExpenses = new ArrayList<LoadData>();
 
 void loadExpensesCountry()
 {
    String[] lines = loadStrings("expensesByCountry.csv");
    for (String line:lines)
    {
-      ExpenseByCountry byCountry = new ExpenseByCountry(line);
-      expenseByCountry.add(byCountry);
+      LoadData row = new LoadData(line);
+      militaryExpenses.add(row);
    }
 }
 
@@ -119,28 +144,22 @@ int countryCount = 27;
 float coTotalSpent[] = new float[countryCount];      // Array to store total spent for each country
 int countryID = 0;                                   // References the arraylist position of the requested country -> Initialised to 0 (first country position)
 PImage linegraphBG;                                  // Background for the page
+float totalToDate;
+int boundrySize;
 
 color coButtonCol;
 color coButtonMOCol;
 color coButtonLabelCol;
+color graphTitleCol;
 color graphLineCol;
 color graphAxisCol;
+color graphAxisTxtCol;
 color graphMOLineCol;
 color graphMOTxtCol;
+int coButtonTxtSize;
+int graphTitleTxtSize;
+int graphAxisTxtSize;
 
-// Method to get total spent by each country
-void getTotal()
-{
-   for (int i = 0; i < expenseByCountry.size(); i++)
-   {
-      ExpenseByCountry loadTotal = expenseByCountry.get(i);
-      for (float amount:loadTotal.spent)
-      {
-         coTotalSpent[i] += amount;
-      }
-      println(coTotalSpent[i]);
-   }
-}
 
 void yearlyGraphs()
 {
@@ -148,15 +167,20 @@ void yearlyGraphs()
    /*************** AXIS ***************/
    
    // Boundry Properties
-   int boundrySize = width / 10;
-   int xBoundry = boundrySize;
-   int xLength = width - (boundrySize * 2);
-   int yBoundry = height - boundrySize;
-   int yLength = height - (boundrySize * 2);
+   boundrySize = width / 10;
+   int xBoundryStart = boundrySize;
+   int xBoundryEnd = width - boundrySize;
+   int xLength = xBoundryEnd - xBoundryStart;
+   int yBoundryStart = height - boundrySize;
+   int yBoundryEnd = boundrySize;
+   int yLength = yBoundryStart - yBoundryEnd;
      
    // Axis Properties
-   stroke(255);
+   stroke(graphAxisCol);
+   fill(graphAxisTxtCol);
    strokeWeight(2);
+   textSize(graphAxisTxtSize);
+   
    int markerSize = 10;
    int xTextOffset = 35;
    int yTextOffset = 20;
@@ -166,77 +190,84 @@ void yearlyGraphs()
    int yAxisEndVal = coMaxRange[countryID];
      
    // X-Axis
-   line(xBoundry, yBoundry, xBoundry+xLength, yBoundry);
+   line(xBoundryStart, yBoundryStart, xBoundryEnd, yBoundryStart);
    // X-Axis Start Marker
-   line(xBoundry, yBoundry, xBoundry, yBoundry+markerSize);
+   line(xBoundryStart, yBoundryStart, xBoundryStart, yBoundryStart + markerSize);
    textAlign(CENTER);
-   text(xAxisStartVal, xBoundry, yBoundry+xTextOffset);
+   text(xAxisStartVal, xBoundryStart, yBoundryStart + xTextOffset);
    // X-Axis End Marker
-   line(xBoundry+xLength, yBoundry, xBoundry+xLength, yBoundry+markerSize);
-   text(xAxisEndVal, xBoundry + xLength, yBoundry + xTextOffset);
+   line(xBoundryEnd, yBoundryStart, xBoundryEnd, yBoundryStart + markerSize);
+   text(xAxisEndVal, xBoundryEnd, yBoundryStart + xTextOffset);
      
    // Y-Axis 
-   line(xBoundry, yBoundry, xBoundry, yBoundry - yLength);
+   line(xBoundryStart, yBoundryStart, xBoundryStart, yBoundryEnd);
    // Y-Axis start marker
-   line(xBoundry, yBoundry, xBoundry - markerSize, yBoundry);
-   textSize(20);
+   line(xBoundryStart, yBoundryStart, xBoundryStart - markerSize, yBoundryStart);
    textAlign(RIGHT, CENTER);
-   text(yAxisStartVal, xBoundry - yTextOffset, yBoundry);
+   text(yAxisStartVal, xBoundryStart - yTextOffset, yBoundryStart);
    // Y-Axis end marker
-   line(xBoundry, yBoundry-yLength, xBoundry-markerSize, yBoundry-yLength);
-   text(yAxisEndVal, xBoundry-yTextOffset, yBoundry-yLength);
+   line(xBoundryStart, yBoundryEnd, xBoundryStart-markerSize, yBoundryEnd);
+   text(yAxisEndVal, xBoundryStart - yTextOffset, yBoundryEnd);
    
    
    /*************** LINEGRAPH ***************/
    
-   for (int i = 1; i < expenseByCountry.size(); i++)
+   totalToDate = militaryExpenses.get(0).spent[countryID];
+   
+   for (int i = 1; i < militaryExpenses.size(); i++)
    {
-      ExpenseByCountry prev = expenseByCountry.get(i-1);
-      ExpenseByCountry next = expenseByCountry.get(i);
-      float prevX = map(i-1, 0, (expenseByCountry.size() - 1), boundrySize, width - boundrySize);
-      float nextX = map(i, 0, (expenseByCountry.size() - 1), boundrySize, width - boundrySize);
-      float prevY = map(prev.spent[countryID], 0, coMaxRange[countryID], yBoundry, boundrySize);
-      float nextY = map(next.spent[countryID], 0, coMaxRange[countryID], yBoundry, boundrySize);
+      LoadData prev = militaryExpenses.get(i-1);
+      LoadData next = militaryExpenses.get(i);
+ 
+      float prevX = map(i-1, 0, (militaryExpenses.size() - 1), boundrySize, width - boundrySize);
+      float nextX = map(i, 0, (militaryExpenses.size() - 1), boundrySize, width - boundrySize);
+      float prevY = map(prev.spent[countryID], 0, coMaxRange[countryID], yBoundryStart, boundrySize);
+      float nextY = map(next.spent[countryID], 0, coMaxRange[countryID], yBoundryStart, boundrySize);
+      
       stroke(0);
       strokeWeight(2);
       line(prevX, prevY, nextX, nextY);
        
       /********** MouseOver Feature **********/
-    
-      if (mouseY < yBoundry && mouseY > boundrySize)
+      
+      PVector yearStringPos = new PVector(xBoundryStart + 15, boundrySize + 5);
+      PVector spentStringPos = new PVector(yearStringPos.x, yearStringPos.y + 25);
+      PVector totalStringPos = new PVector(yearStringPos.x, spentStringPos.y + 25);
+      String yearVal = "Year: " + (int)prev.year;
+      String spentVal = "Spent (Mil.€): " + prev.spent[countryID];
+      String totalVal = "Total To Date: " + totalToDate;
+      
+      stroke(graphMOLineCol);
+      fill(graphMOTxtCol);
+      textAlign(LEFT, CENTER);
+      textSize(19);
+      
+      if (mouseY < yBoundryStart && mouseY > yBoundryEnd)
       {
          if (mouseX > prevX && mouseX < nextX)
-         {
-            fill(200,0,0);
-            textAlign(LEFT, CENTER);
-            textSize(19);
-            PVector yearStringPos = new PVector(xBoundry + 15, boundrySize + 5);
-            PVector spentStringPos = new PVector(yearStringPos.x, yearStringPos.y + 25);
-            String yearVal = "Year: " + (int)prev.year;
-            String spentVal = "Spent (Mil.€): " + prev.spent[countryID];
-            
+         {       
             // MouseOver Line
-            stroke(graphMOLineCol);
-            line(mouseX, yBoundry, mouseX, boundrySize);
+            line(mouseX, yBoundryStart, mouseX, yBoundryEnd);
             
             // MouseOver Data
-            fill(graphMOTxtCol);
-            textAlign(LEFT, CENTER);
-            textSize(19);
             text(yearVal, yearStringPos.x, yearStringPos.y);
             text(spentVal, spentStringPos.x, spentStringPos.y);
+            text(totalVal, totalStringPos.x, totalStringPos.y);
          }
       }
+      totalToDate += next.spent[countryID];
    }
+
    
    
    /*************** TITLE ***************/
    
+   textAlign(CENTER, CENTER);
+   textSize(graphTitleTxtSize);
+   fill(graphTitleCol);
+   
    String title = country[countryID];
    PVector titlePos = new PVector(width/2, 60);
-   fill(255);
-   textAlign(CENTER, CENTER);
-   textSize(22);
    text(title.toUpperCase(), titlePos.x, titlePos.y);
    
    
@@ -245,7 +276,6 @@ void yearlyGraphs()
    // Button Properties
    float buttonWidth = (float) width / countryCount;
    int buttonHeight = 20;
-   String countryAbbrev[] = {"CAN", "USA", "AL", "BE", "BG", "HR", "CZ", "DK", "EE", "FR", "GER", "GR", "HU", "IT", "LV", "LT", "LU", "NL", "NO", "PL", "PT", "RO", "SK", "SI", "ES", "TR", "UK"};
    
    // Button Code ... Display & Function
    for (int i = 0; i < countryCount; i++)   // Button For Each Country
@@ -257,8 +287,8 @@ void yearlyGraphs()
       {
          fill(coButtonMOCol);
          stroke(coButtonMOCol);
-         
-      if (mousePressed) countryID = i;
+         if (mousePressed)
+           countryID = i;
       }
       else 
       {
@@ -271,7 +301,7 @@ void yearlyGraphs()
       PVector labelPos = new PVector(buttonX + (buttonWidth / 2), buttonHeight / 2);
       fill(255);
       textAlign(CENTER, CENTER);
-      textSize(12);
+      textSize(coButtonTxtSize);
       text(countryAbbrev[i], labelPos.x, labelPos.y);
    }
 }
@@ -280,12 +310,23 @@ void yearlyGraphs()
 
 /************************
                       *************************************************************************************************************************************************************************
-     Second Graph     *************************************************************************************************************************************************************************
+  Yearly Comparison   *************************************************************************************************************************************************************************
                       *************************************************************************************************************************************************************************
 ************************/
 
-void overallSpent()
+color barAxisCol;
+
+void drawBarchart()
 {
+  /********** Boundry **********/
+  float boundrySize = height * 0.1f;
+  float boundryStart = 0;
+  float boundryEnd = width;
+  float boundryPos = height - boundrySize;
+  
+  /********** Axis **********/
+  stroke(barAxisCol);
+  line(boundryStart, boundryPos, boundryEnd, boundryPos);
   
 }
 
