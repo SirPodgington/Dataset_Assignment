@@ -1,3 +1,11 @@
+/*
+REFACTOR CODE:  Split the axis from the drawLineGraph method and give it it's own.  Then have other methods to load the standard deviation (separate), min/max/avg (onto the defualt linegraph)
+
+Add music player (if i can figure it out, if not... thinking of other ideas still)
+
+*/
+
+
 String countryAbbrev[] = {"CAN", "USA", "AL", "BE", "BG", "HR", "CZ", "DK", "EE", "FR", "GER", "GR", "HU", "IT", "LV", "LT", "LU", "NL", "NO", "PL", "PT", "RO", "SK", "SI", "ES", "TR", "UK"};
 
 void setup()
@@ -10,30 +18,28 @@ void setup()
    // Graph Properties
    linegraphBG = loadImage("Navy_Blue_Background.jpg");
    linegraphBG.resize(width, height);
-   
-   graphLineCol = color(0);      // Graph Line
-   graphAxisCol = color(255);      // Graph Axis
-   graphAxisTxtCol = color(255);
-   graphMOLineCol = color(0,255,255);    // MouseOver Line
-   graphMOTxtCol = color(0,255,255);     // MouseOver Text
-   graphTitleCol = color(255);
-   graphTitleTxtSize = 26;
-   graphAxisTxtSize = 16;
+   yearlyGraphlineCol = color(0);      // Graph Line
+   yearlyAxisCol = color(255);      // Graph Axis
+   yearlyAxisTxtCol = color(255);
+   yearlyMOLineCol = color(0,255,255);    // MouseOver Line
+   yearlyMOTxtCol = color(0,255,255);     // MouseOver Text
+   yearlyTitleCol = color(255);
+   yearlyTitleSize = 26;
+   yearlyAxisLblSize = 16;
    
    // Country Button Colours & Font Size
    coButtonCol = color(0);            // Default
    coButtonMOCol = color(0,150,255);  // MouseOver
    coButtonLabelCol = color(255);     // Label
-   coButtonTxtSize = 12;
+   coButtonLblSize = 12;
    
-   // Return To Menu Colour & Font Size
-   retToMenuCol = color(0);
-   retToMenuTxtSize = 26;
+   // Overall Spent Linegraph
+   ovrChartAxisCol = color(127);
+   ovrChartBG = color(0);
    
-   // Barchart Colours & Font Size
-   barchartBG = loadImage("");
-   barchartBG.resize(width, height);
-   barAxisCol = colour(255);
+   // Overall Spent Comparison
+   overallBG = loadImage("orange_background.jpg");
+   overallBG.resize(width, height);
    
    // Main Menu Colours & Font Size
    menuOptsCol = color(0,255,255);
@@ -50,16 +56,16 @@ void setup()
 ************************/
 
 color retToMenuCol;
-int retToMenuTxtSize;
+int retToMenuSize;
+PVector menuPos;
 
 void returnToMenu()
 {
    fill(retToMenuCol);
-   textSize(retToMenuTxtSize);
+   textSize(retToMenuSize);
    textAlign(CENTER,CENTER);
   
    String menuString = "Return to Main Menu [Press M]";
-   PVector menuPos = new PVector(width / 2, height - (boundrySize/2));
    text(menuString, menuPos.x, menuPos.y);
    
    if (keyPressed && (key == 'M' || key == 'm'))
@@ -141,45 +147,58 @@ int coMaxRange[] =
 {16000, 750000, 200, 5000, 1000, 1500, 2500, 30000, 500, 50000, 40000, 10000, 1500,      // Stores the max range values for all countries
 30000, 600, 500, 300, 10000, 5000, 10000, 4000, 2000, 1000, 750, 15000, 15000, 60000};
 int countryCount = 27;
-float coTotalSpent[] = new float[countryCount];      // Array to store total spent for each country
-int countryID = 0;                                   // References the arraylist position of the requested country -> Initialised to 0 (first country position)
-PImage linegraphBG;                                  // Background for the page
-float totalToDate;
+int countryID = 0;                               // References the arraylist position of the requested country -> Initialised to 0 (first country position)
+PImage linegraphBG;                              // Background for the page
+
+
+
+/*************** TITLE ***************/
+
+color yearlyTitleCol;
+int yearlyTitleSize;
+
+void yearlyTitle()
+{ 
+   textAlign(CENTER, CENTER);
+   textSize(yearlyTitleSize);
+   fill(yearlyTitleCol);
+   
+   String title = country[countryID];
+   PVector titlePos = new PVector(width/2, 60);
+   text(title.toUpperCase(), titlePos.x, titlePos.y);
+}
+
+
+/*************** AXIS ***************/
+
+color yearlyAxisCol;
+color yearlyAxisTxtCol;
+int yearlyAxisLblSize;
+
 int boundrySize;
+int xBoundryStart;
+int xBoundryEnd;
+int xLength;
+int yBoundryStart;
+int yBoundryEnd;
+int yLength;
 
-color coButtonCol;
-color coButtonMOCol;
-color coButtonLabelCol;
-color graphTitleCol;
-color graphLineCol;
-color graphAxisCol;
-color graphAxisTxtCol;
-color graphMOLineCol;
-color graphMOTxtCol;
-int coButtonTxtSize;
-int graphTitleTxtSize;
-int graphAxisTxtSize;
-
-
-void yearlyGraphs()
-{
-   
-   /*************** AXIS ***************/
-   
+void yearlyAxis()
+{ 
    // Boundry Properties
    boundrySize = width / 10;
-   int xBoundryStart = boundrySize;
-   int xBoundryEnd = width - boundrySize;
-   int xLength = xBoundryEnd - xBoundryStart;
-   int yBoundryStart = height - boundrySize;
-   int yBoundryEnd = boundrySize;
-   int yLength = yBoundryStart - yBoundryEnd;
+   xBoundryStart = boundrySize;
+   xBoundryEnd = width - boundrySize;
+   xLength = xBoundryEnd - xBoundryStart;
+   yBoundryStart = height - boundrySize;
+   yBoundryEnd = boundrySize;
+   yLength = yBoundryStart - yBoundryEnd;
      
    // Axis Properties
-   stroke(graphAxisCol);
-   fill(graphAxisTxtCol);
    strokeWeight(2);
-   textSize(graphAxisTxtSize);
+   stroke(yearlyAxisCol);
+   fill(yearlyAxisTxtCol);
+   textSize(yearlyAxisLblSize);
    
    int markerSize = 10;
    int xTextOffset = 35;
@@ -208,10 +227,26 @@ void yearlyGraphs()
    // Y-Axis end marker
    line(xBoundryStart, yBoundryEnd, xBoundryStart-markerSize, yBoundryEnd);
    text(yAxisEndVal, xBoundryStart - yTextOffset, yBoundryEnd);
+}
+
+
+/*************** LINEGRAPH ***************/
+
+color yearlyGraphlineCol;
+color yearlyMOLineCol;
+color yearlyMOTxtCol;
+
+float coTotalSpent[] = new float[countryCount];      // Array to store total spent for each country
+float totalToDate;
+
+void yearlyGraphs()
+{
+   // Return To Menu Properties
+   retToMenuCol = color(0);
+   retToMenuSize = 26;
+   menuPos = new PVector(width / 2, height - (boundrySize/2));
    
-   
-   /*************** LINEGRAPH ***************/
-   
+   // Linegraph
    totalToDate = militaryExpenses.get(0).spent[countryID];
    
    for (int i = 1; i < militaryExpenses.size(); i++)
@@ -224,7 +259,7 @@ void yearlyGraphs()
       float prevY = map(prev.spent[countryID], 0, coMaxRange[countryID], yBoundryStart, boundrySize);
       float nextY = map(next.spent[countryID], 0, coMaxRange[countryID], yBoundryStart, boundrySize);
       
-      stroke(0);
+      stroke(yearlyGraphlineCol);
       strokeWeight(2);
       line(prevX, prevY, nextX, nextY);
        
@@ -237,8 +272,8 @@ void yearlyGraphs()
       String spentVal = "Spent (Mil.€): " + prev.spent[countryID];
       String totalVal = "Total To Date: " + totalToDate;
       
-      stroke(graphMOLineCol);
-      fill(graphMOTxtCol);
+      stroke(yearlyMOLineCol);
+      fill(yearlyMOTxtCol);
       textAlign(LEFT, CENTER);
       textSize(19);
       
@@ -256,33 +291,28 @@ void yearlyGraphs()
          }
       }
       totalToDate += next.spent[countryID];
-   }
+   }  
+}
 
-   
-   
-   /*************** TITLE ***************/
-   
-   textAlign(CENTER, CENTER);
-   textSize(graphTitleTxtSize);
-   fill(graphTitleCol);
-   
-   String title = country[countryID];
-   PVector titlePos = new PVector(width/2, 60);
-   text(title.toUpperCase(), titlePos.x, titlePos.y);
-   
-   
-   /*************** COUNTRY BUTTONS ***************/
-   
-   // Button Properties
-   float buttonWidth = (float) width / countryCount;
-   int buttonHeight = 20;
-   
-   // Button Code ... Display & Function
+
+
+/*************** COUNTRY BUTTONS ***************/
+
+color coButtonCol;
+color coButtonMOCol;
+color coButtonLabelCol;
+int coButtonLblSize;
+
+float buttonWidth = (float) width / countryCount;
+int buttonHeight = 20;
+
+void countryButtons()
+{  
    for (int i = 0; i < countryCount; i++)   // Button For Each Country
    {
       float buttonX = buttonWidth * i;
       
-      // If Mouse Is Over Button -- Else If Button Pressed -- Else..
+      // If Mouse Is Over Button -> If Button Pressed | Else..
       if (mouseX > buttonX && mouseX < (buttonX + buttonWidth) && mouseY < buttonHeight)
       {
          fill(coButtonMOCol);
@@ -301,35 +331,55 @@ void yearlyGraphs()
       PVector labelPos = new PVector(buttonX + (buttonWidth / 2), buttonHeight / 2);
       fill(255);
       textAlign(CENTER, CENTER);
-      textSize(coButtonTxtSize);
+      textSize(coButtonLblSize);
       text(countryAbbrev[i], labelPos.x, labelPos.y);
    }
 }
 
 
-
 /************************
                       *************************************************************************************************************************************************************************
-  Yearly Comparison   *************************************************************************************************************************************************************************
+     Overall Spent    *************************************************************************************************************************************************************************
+     Progression &    *************************************************************************************************************************************************************************
+      Comparison      *************************************************************************************************************************************************************************
                       *************************************************************************************************************************************************************************
 ************************/
 
-color barAxisCol;
+PImage overallBG;
+color ovrChartBG;
+color ovrChartAxisCol;
 
-void drawBarchart()
+void drawOverall()
 {
+  // Return To Menu Colour & Font Size
+   retToMenuCol = color(0);
+   retToMenuSize = 20;
+   menuPos = new PVector(width / 2, height * 0.95f);
+  
+  //////////////////////////
+  ///////  BARCHART  ///////
+  //////////////////////////
+  // Barchart comparing overall spent by all countries combined each year over the course of the timelapse
+  
   /********** Boundry **********/
-  float boundrySize = height * 0.1f;
   float boundryStart = 0;
   float boundryEnd = width;
-  float boundryPos = height - boundrySize;
+  float boundryPos = height * 0.33f;
+  fill(ovrChartBG);
+  stroke(ovrChartBG);
+  rect(boundryStart,0,width,boundryPos); // background for the barchart
   
-  /********** Axis **********/
-  stroke(barAxisCol);
-  line(boundryStart, boundryPos, boundryEnd, boundryPos);
+  /********** Barchart **********/
+  
+  
+  
+  ///////////////////////
+  /////  COMPARISON /////
+  ///////////////////////
+  // Circles or something similar with size being the default comparator, comparing overall spent by all countries
+  
   
 }
-
 
 
 /************************
@@ -350,19 +400,21 @@ void draw()
       drawMenu();  
    }
   
-   // YEARLY GRAPH PAGE
+   // Linegraph page
    if (pageKey == 1)
    {  
       background(linegraphBG);
       yearlyGraphs();
+      yearlyAxis();
+      countryButtons();
       returnToMenu();
    }
  
-   // OVERALL SPENT PAGE
+   // Overall page
    if (pageKey == 2)
    {
-      background(255,0,0);
-      overallSpent();
+      background(overallBG);
+      drawOverall();
       returnToMenu();
    }
    

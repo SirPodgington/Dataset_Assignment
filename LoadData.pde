@@ -1,7 +1,7 @@
 class LoadData
 {
   float year;
-  float[] spent = new float[countryCount];
+  float spent[] = new float[countryCount];
   float totSpentYearly;
   
   LoadData(String line)
