@@ -15,22 +15,28 @@ void setup()
    
    pageKey = 0;
    
-   // Graph Properties
+   // Yearly Trendline Properties
    yearlyBG = loadImage("Navy_Blue_Background.jpg");
    yearlyBG.resize(width, height);
-   yearlyGraphlineCol = color(0);      // Graph Line
-   yearlyAxisCol = color(255);      // Graph Axis
-   yearlyAxisTxtCol = color(255);
-   yearlyMOLineCol = color(0,255,255);    // MouseOver Line
-   yearlyMOTxtCol = color(0,255,255);     // MouseOver Text
+   yearlyGraphBG = color(20);
+   yearlyGraphOL = color(105);
+   yearlyTrendlineCol = color(0,255,255);      // Graph Line
+   yearlyMOLineCol = color(190);    // MouseOver Line
+   yearlyMOTxtCol = color(190);     // MouseOver Text
+   
+   // Yearly Title Properties
    yearlyTitleCol = color(255);
    yearlyTitleSize = 26;
+   
+   // Yearly Axis Properties
+   yearlyAxisCol = color(255);      // Graph Axis
+   yearlyAxisLblCol = color(255);
    yearlyAxisLblSize = 16;
    
    // Country Button Colours & Font Size
    coButtonCol = color(0);            // Default
    coButtonMOCol = color(0,150,255);  // MouseOver
-   coButtonLabelCol = color(255);     // Label
+   coButtonLblCol = color(255);     // Label
    coButtonLblSize = 12;
    
    // Overall Spent Linegraph
@@ -63,7 +69,7 @@ void returnToMenu()
 {
    fill(retToMenuCol);
    textSize(retToMenuSize);
-   textAlign(CENTER,CENTER);
+   textAlign(RIGHT,CENTER);
   
    String menuString = "Return to Main Menu [Press M]";
    text(menuString, menuPos.x, menuPos.y);
@@ -135,7 +141,7 @@ void loadExpensesCountry()
 
 /************************
                       *************************************************************************************************************************************************************************
-  COUNTRY LINEGRAPH   *************************************************************************************************************************************************************************
+   YEARLY TRENDLINE   *************************************************************************************************************************************************************************
                       *************************************************************************************************************************************************************************
 ************************/
 
@@ -156,9 +162,10 @@ int yearlyTitleSize;
 void yearlyTitle()
 {
    // Return To Menu Properties
-   retToMenuCol = color(0);
-   retToMenuSize = 26;
-   menuPos = new PVector(width / 2, height - (boundrySize/2));
+   // Including this here as it is placed close to title at top of the page
+   retToMenuCol = color(175);
+   retToMenuSize = 14;
+   menuPos = new PVector(width - 20, buttonHeight + 20);
    
    textAlign(CENTER, CENTER);
    textSize(yearlyTitleSize);
@@ -175,7 +182,7 @@ void yearlyTitle()
 *************************************/
 
 color yearlyAxisCol;
-color yearlyAxisTxtCol;
+color yearlyAxisLblCol;
 int yearlyAxisLblSize;
 
 int boundrySize;
@@ -188,6 +195,12 @@ int yLength;
 
 void yearlyAxis()
 { 
+   // Graph Background
+   strokeWeight(0.5);
+   stroke(yearlyGraphOL);
+   fill(yearlyGraphBG);
+   rect(xBoundryStart, yBoundryEnd, xLength, yLength);
+   
    // Boundry Properties
    boundrySize = width / 10;
    xBoundryStart = boundrySize;
@@ -200,7 +213,7 @@ void yearlyAxis()
    // Axis Properties
    strokeWeight(2);
    stroke(yearlyAxisCol);
-   fill(yearlyAxisTxtCol);
+   fill(yearlyAxisLblCol);
    textSize(yearlyAxisLblSize);
    
    int markerSize = 10;
@@ -237,9 +250,11 @@ void yearlyAxis()
 **************** TRENDLINE ****************
 ******************************************/
 
-color yearlyGraphlineCol;
+color yearlyTrendlineCol;
 color yearlyMOLineCol;
 color yearlyMOTxtCol;
+color yearlyGraphBG;
+color yearlyGraphOL;
 
 int coMaxRange[] =
 {16000, 750000, 200, 5000, 1000, 1500, 2500, 30000, 500, 50000, 40000, 10000, 1500,      // Stores the max range values for all countries
@@ -247,18 +262,7 @@ int coMaxRange[] =
 float totalSpent[] = new float[countryCount];      // Array to store total spent for each country
 
 void yearlyTrendline()
-{
-   // Return To Menu Properties
-   retToMenuCol = color(0);
-   retToMenuSize = 26;
-   menuPos = new PVector(width / 2, height - (boundrySize/2));
-   
-   // Trendline Background
-   fill(0,25,75);
-   strokeWeight(0.5);
-   stroke(0);
-   rect(xBoundryStart, yBoundryEnd, xLength, yLength);
-   
+{   
    // Trendline
    float totalToDate = militaryExpenses.get(0).spent[countryID];
    totalSpent[0] = totalToDate;
@@ -273,7 +277,7 @@ void yearlyTrendline()
       float prevY = map(prev.spent[countryID], 0, coMaxRange[countryID], yBoundryStart, boundrySize);
       float nextY = map(next.spent[countryID], 0, coMaxRange[countryID], yBoundryStart, boundrySize);
       
-      stroke(yearlyGraphlineCol);
+      stroke(yearlyTrendlineCol);
       strokeWeight(2);
       line(prevX, prevY, nextX, nextY);
        
@@ -311,21 +315,44 @@ void yearlyTrendline()
 }
 
 
+/*****************************************
+*********** Standard Deviation ***********
+*****************************************/
+
+void yearlyStandardDev()
+{
+   // Getting the element[#] of first 
+   int startIndex = -1;
+   for (int i = 0; startIndex == -1; i++)
+   {
+      LoadData getVal = militaryExpenses.get(i);
+      
+      if (getVal.spent[countryID] > 0)
+      {
+         startIndex = i;
+      }
+   }
+   
+   
+
+}
+
+
 /************************************************
 **************** COUNTRY BUTTONS ****************
 ************************************************/
 
 color coButtonCol;
 color coButtonMOCol;
-color coButtonLabelCol;
+color coButtonLblCol;
 int coButtonLblSize;
+int buttonHeight = 20;
 
 int countryID = 0;      // References the arraylist position of the requested country -> Initialised to 0 (first country position)
 
 void countryButtons()
 {
    float buttonWidth = (float) width / countryCount;
-   int buttonHeight = 20;
 
    for (int i = 0; i < countryCount; i++)   // Button For Each Country
    {
@@ -423,8 +450,8 @@ void draw()
    if (pageKey == 1)
    {  
       background(yearlyBG);
-      yearlyTrendline();
       yearlyAxis();
+      yearlyTrendline();
       yearlyTitle();
       countryButtons();
       returnToMenu();
