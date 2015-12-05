@@ -16,8 +16,8 @@ void setup()
    pageKey = 0;
    
    // Graph Properties
-   linegraphBG = loadImage("Navy_Blue_Background.jpg");
-   linegraphBG.resize(width, height);
+   yearlyBG = loadImage("Navy_Blue_Background.jpg");
+   yearlyBG.resize(width, height);
    yearlyGraphlineCol = color(0);      // Graph Line
    yearlyAxisCol = color(255);      // Graph Axis
    yearlyAxisTxtCol = color(255);
@@ -139,21 +139,18 @@ void loadExpensesCountry()
                       *************************************************************************************************************************************************************************
 ************************/
 
+// Background
+PImage yearlyBG;
+
+/*************************************
+*************** TITLE ****************
+*************************************/
+
 String country[] = 
 {"Canada","USA","Albania","Belgium","Bulgaria","Croatia","Czech Rep","Denmark","Estonia",
 "France","Germany","Greece","Hungary","Italy","Latvia","Lithuania","Luxembourg","Netherlands",
 "Norway","Poland","Portugal","Romania","Slovakia","Slovenia","Spain","Turkey","UK"};
-int coMaxRange[] =
-{16000, 750000, 200, 5000, 1000, 1500, 2500, 30000, 500, 50000, 40000, 10000, 1500,      // Stores the max range values for all countries
-30000, 600, 500, 300, 10000, 5000, 10000, 4000, 2000, 1000, 750, 15000, 15000, 60000};
-int countryCount = 27;
-int countryID = 0;                               // References the arraylist position of the requested country -> Initialised to 0 (first country position)
-PImage linegraphBG;                              // Background for the page
-
-
-
-/*************** TITLE ***************/
-
+int countryCount = country.length;
 color yearlyTitleCol;
 int yearlyTitleSize;
 
@@ -169,7 +166,9 @@ void yearlyTitle()
 }
 
 
-/*************** AXIS ***************/
+/*************************************
+*************** AXIS *****************
+*************************************/
 
 color yearlyAxisCol;
 color yearlyAxisTxtCol;
@@ -230,16 +229,20 @@ void yearlyAxis()
 }
 
 
-/*************** LINEGRAPH ***************/
+/******************************************
+**************** LINEGRAPH ****************
+******************************************/
 
 color yearlyGraphlineCol;
 color yearlyMOLineCol;
 color yearlyMOTxtCol;
 
-float coTotalSpent[] = new float[countryCount];      // Array to store total spent for each country
-float totalToDate;
+int coMaxRange[] =
+{16000, 750000, 200, 5000, 1000, 1500, 2500, 30000, 500, 50000, 40000, 10000, 1500,      // Stores the max range values for all countries
+30000, 600, 500, 300, 10000, 5000, 10000, 4000, 2000, 1000, 750, 15000, 15000, 60000};
+float totalSpent[] = new float[countryCount];      // Array to store total spent for each country
 
-void yearlyGraphs()
+void yearlyTrendline()
 {
    // Return To Menu Properties
    retToMenuCol = color(0);
@@ -247,7 +250,8 @@ void yearlyGraphs()
    menuPos = new PVector(width / 2, height - (boundrySize/2));
    
    // Linegraph
-   totalToDate = militaryExpenses.get(0).spent[countryID];
+   float totalToDate = militaryExpenses.get(0).spent[countryID];
+   totalSpent[0] = totalToDate;
    
    for (int i = 1; i < militaryExpenses.size(); i++)
    {
@@ -291,23 +295,27 @@ void yearlyGraphs()
          }
       }
       totalToDate += next.spent[countryID];
-   }  
+   }
+   totalSpent[countryID] = totalToDate;
 }
 
 
-
-/*************** COUNTRY BUTTONS ***************/
+/************************************************
+**************** COUNTRY BUTTONS ****************
+************************************************/
 
 color coButtonCol;
 color coButtonMOCol;
 color coButtonLabelCol;
 int coButtonLblSize;
 
-float buttonWidth = (float) width / countryCount;
-int buttonHeight = 20;
+int countryID = 0;      // References the arraylist position of the requested country -> Initialised to 0 (first country position)
 
 void countryButtons()
-{  
+{
+   float buttonWidth = (float) width / countryCount;
+   int buttonHeight = 20;
+
    for (int i = 0; i < countryCount; i++)   // Button For Each Country
    {
       float buttonX = buttonWidth * i;
@@ -403,8 +411,8 @@ void draw()
    // Linegraph page
    if (pageKey == 1)
    {  
-      background(linegraphBG);
-      yearlyGraphs();
+      background(yearlyBG);
+      yearlyTrendline();
       yearlyAxis();
       countryButtons();
       returnToMenu();
