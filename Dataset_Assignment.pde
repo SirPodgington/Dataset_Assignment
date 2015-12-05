@@ -15,14 +15,17 @@ void setup()
    
    pageKey = 0;
    
-   // Yearly Trendline Properties
+   // Yearly Linegraph Properties
    yearlyBG = loadImage("Navy_Blue_Background.jpg");
    yearlyBG.resize(width, height);
    yearlyGraphBG = color(20);
    yearlyGraphOL = color(105);
-   yearlyTrendlineCol = color(0,255,255);      // Graph Line
+   yearlyLinegraphCol = color(0,255,255);      // Graph Line
    yearlyMOLineCol = color(190);    // MouseOver Line
    yearlyMOTxtCol = color(190);     // MouseOver Text
+   
+   // Yearly Standard Deviation Properties
+   yearlySDlineCol = color(0,50,255);
    
    // Yearly Title Properties
    yearlyTitleCol = color(255);
@@ -141,7 +144,7 @@ void loadExpensesCountry()
 
 /************************
                       *************************************************************************************************************************************************************************
-   YEARLY TRENDLINE   *************************************************************************************************************************************************************************
+   YEARLY LINEGRAPH   *************************************************************************************************************************************************************************
                       *************************************************************************************************************************************************************************
 ************************/
 
@@ -246,11 +249,25 @@ void yearlyAxis()
 }
 
 
+/*******************************************
+************ GRAPH FEATURES MENU ***********
+*******************************************/
+
+void graphFeaturesMenu()
+{
+  strokeWeight(1);
+  stroke(105);
+  fill(45);
+  
+  rect(150, height, width - 300, -(boundrySize*.7));
+}
+
+
 /******************************************
-**************** TRENDLINE ****************
+**************** LINEGRAPH ****************
 ******************************************/
 
-color yearlyTrendlineCol;
+color yearlyLinegraphCol;
 color yearlyMOLineCol;
 color yearlyMOTxtCol;
 color yearlyGraphBG;
@@ -261,9 +278,9 @@ int coMaxRange[] =
 30000, 600, 500, 300, 10000, 5000, 10000, 4000, 2000, 1000, 750, 15000, 15000, 60000};
 float totalSpent[] = new float[countryCount];      // Array to store total spent for each country
 
-void yearlyTrendline()
+void yearlyLinegraph()
 {   
-   // Trendline
+   // Linegraph
    float totalToDate = militaryExpenses.get(0).spent[countryID];
    totalSpent[0] = totalToDate;
    
@@ -272,12 +289,12 @@ void yearlyTrendline()
       LoadData prev = militaryExpenses.get(i-1);
       LoadData next = militaryExpenses.get(i);
  
-      float prevX = map(i-1, 0, (militaryExpenses.size() - 1), boundrySize, width - boundrySize);
-      float nextX = map(i, 0, (militaryExpenses.size() - 1), boundrySize, width - boundrySize);
-      float prevY = map(prev.spent[countryID], 0, coMaxRange[countryID], yBoundryStart, boundrySize);
-      float nextY = map(next.spent[countryID], 0, coMaxRange[countryID], yBoundryStart, boundrySize);
+      float prevX = map(i-1, 0, (militaryExpenses.size() - 1), xBoundryStart, xBoundryEnd);
+      float nextX = map(i, 0, (militaryExpenses.size() - 1), xBoundryStart, xBoundryEnd);
+      float prevY = map(prev.spent[countryID], 0, coMaxRange[countryID], yBoundryStart, yBoundryEnd);
+      float nextY = map(next.spent[countryID], 0, coMaxRange[countryID], yBoundryStart, yBoundryEnd);
       
-      stroke(yearlyTrendlineCol);
+      stroke(yearlyLinegraphCol);
       strokeWeight(2);
       line(prevX, prevY, nextX, nextY);
        
@@ -319,21 +336,36 @@ void yearlyTrendline()
 *********** Standard Deviation ***********
 *****************************************/
 
+color yearlySDlineCol;
+
 void yearlyStandardDev()
 {
-   // Getting the element[#] of first 
+   // Getting the element[#] of first
+   int yearCount = militaryExpenses.size();
+   int endIndex = yearCount - 1;
    int startIndex = -1;
    for (int i = 0; startIndex == -1; i++)
    {
       LoadData getVal = militaryExpenses.get(i);
       
-      if (getVal.spent[countryID] > 0)
+      if (getVal.spent[countryID] != 0)
       {
-         startIndex = i;
+         if (i == 0) startIndex = i;
+         else startIndex = i - 1;
       }
    }
    
+   LoadData start = militaryExpenses.get(startIndex);
+   LoadData end = militaryExpenses.get(endIndex);
    
+   float startX = map(startIndex+1, 1, yearCount, xBoundryStart, xBoundryEnd);
+   float endX = map(yearCount, 1, yearCount, xBoundryStart, xBoundryEnd);
+   float startY = map(start.spent[countryID], 0, coMaxRange[countryID], yBoundryStart, yBoundryEnd);
+   float endY = map(end.spent[countryID], 0, coMaxRange[countryID], yBoundryStart, yBoundryEnd);
+      
+   strokeWeight(0.7);
+   stroke(yearlySDlineCol);
+   line(startX, startY, endX, endY);
 
 }
 
@@ -451,8 +483,10 @@ void draw()
    {  
       background(yearlyBG);
       yearlyAxis();
-      yearlyTrendline();
+      yearlyStandardDev();
+      yearlyLinegraph();
       yearlyTitle();
+      graphFeaturesMenu();
       countryButtons();
       returnToMenu();
    }
