@@ -139,8 +139,7 @@ void loadExpensesCountry()
                       *************************************************************************************************************************************************************************
 ************************/
 
-// Background
-PImage yearlyBG;
+PImage yearlyBG;    // Background
 
 /*************************************
 *************** TITLE ****************
@@ -155,7 +154,12 @@ color yearlyTitleCol;
 int yearlyTitleSize;
 
 void yearlyTitle()
-{ 
+{
+   // Return To Menu Properties
+   retToMenuCol = color(0);
+   retToMenuSize = 26;
+   menuPos = new PVector(width / 2, height - (boundrySize/2));
+   
    textAlign(CENTER, CENTER);
    textSize(yearlyTitleSize);
    fill(yearlyTitleCol);
@@ -206,7 +210,7 @@ void yearlyAxis()
    int xAxisEndVal = 2014;
    int yAxisStartVal = 0;
    int yAxisEndVal = coMaxRange[countryID];
-     
+   
    // X-Axis
    line(xBoundryStart, yBoundryStart, xBoundryEnd, yBoundryStart);
    // X-Axis Start Marker
@@ -230,7 +234,7 @@ void yearlyAxis()
 
 
 /******************************************
-**************** LINEGRAPH ****************
+**************** TRENDLINE ****************
 ******************************************/
 
 color yearlyGraphlineCol;
@@ -249,7 +253,13 @@ void yearlyTrendline()
    retToMenuSize = 26;
    menuPos = new PVector(width / 2, height - (boundrySize/2));
    
-   // Linegraph
+   // Trendline Background
+   fill(0,25,75);
+   strokeWeight(0.5);
+   stroke(0);
+   rect(xBoundryStart, yBoundryEnd, xLength, yLength);
+   
+   // Trendline
    float totalToDate = militaryExpenses.get(0).spent[countryID];
    totalSpent[0] = totalToDate;
    
@@ -269,7 +279,8 @@ void yearlyTrendline()
        
       /********** MouseOver Feature **********/
       
-      PVector yearStringPos = new PVector(xBoundryStart + 15, boundrySize + 5);
+      int moDataOffset = 15;
+      PVector yearStringPos = new PVector(xBoundryStart + moDataOffset, boundrySize + moDataOffset);
       PVector spentStringPos = new PVector(yearStringPos.x, yearStringPos.y + 25);
       PVector totalStringPos = new PVector(yearStringPos.x, spentStringPos.y + 25);
       String yearVal = "Year: " + (int)prev.year;
@@ -414,6 +425,7 @@ void draw()
       background(yearlyBG);
       yearlyTrendline();
       yearlyAxis();
+      yearlyTitle();
       countryButtons();
       returnToMenu();
    }
