@@ -1,5 +1,5 @@
 /*
-REFACTOR CODE:  Split the axis from the drawLineGraph method and give it it's own.  Then have other methods to load the standard deviation (separate), min/max/avg (onto the defualt linegraph)
+REFACTOR CODE:  Split the axis from the drawLineGraph method and give it it's own.  Then have other methods to load the Linear Progression (separate), min/max/avg (onto the defualt linegraph)
 
 Add music player (if i can figure it out, if not... thinking of other ideas still)
 
@@ -20,12 +20,12 @@ void setup()
    yearlyBG.resize(width, height);
    yearlyGraphBG = color(20);
    yearlyGraphOL = color(105);
-   yearlyLinegraphCol = color(0,255,255);      // Graph Line
-   yearlyMOLineCol = color(190);    // MouseOver Line
-   yearlyMOTxtCol = color(190);     // MouseOver Text
+   yearlyNonLinearCol = color(0,255,255);      // Graph Line
+   yearlyMOLineCol = color(225);    // MouseOver Line
+   yearlyMOTxtCol = color(225);     // MouseOver Text
    
-   // Yearly Standard Deviation Properties
-   yearlySDlineCol = color(0,50,255);
+   // Yearly Linear Progression Properties
+   yearlyLinearLineCol = color(0,50,255);
    
    // Yearly Title Properties
    yearlyTitleCol = color(255);
@@ -175,7 +175,7 @@ void yearlyTitle()
    fill(yearlyTitleCol);
    
    String title = country[countryID];
-   PVector titlePos = new PVector(width/2, 60);
+   PVector titlePos = new PVector(width/2, 40);
    text(title.toUpperCase(), titlePos.x, titlePos.y);
 }
 
@@ -187,6 +187,8 @@ void yearlyTitle()
 color yearlyAxisCol;
 color yearlyAxisLblCol;
 int yearlyAxisLblSize;
+color yearlyGraphBG;
+color yearlyGraphOL;
 
 int boundrySize;
 int xBoundryStart;
@@ -250,37 +252,50 @@ void yearlyAxis()
 
 
 /*******************************************
-************ GRAPH FEATURES MENU ***********
+********** Graph MouseOver Table ***********
 *******************************************/
 
-void graphFeaturesMenu()
+float moTableWidth;
+float moTableHeight;
+float moTableLeft;
+float moTableRight;
+float moTableTop;
+float moTableBottom;
+
+void graphMOTable()
 {
+  moTableWidth = width - 450;
+  moTableHeight = boundrySize * 0.7;
+  
+  moTableLeft = (width - moTableWidth) * .5f;
+  moTableRight = moTableLeft + moTableWidth;
+  moTableTop = height - moTableHeight;
+  moTableBottom = height;
+  
   strokeWeight(1);
   stroke(105);
-  fill(45);
+  fill(yearlyGraphBG);
   
-  rect(150, height, width - 300, -(boundrySize*.7));
+  rect(moTableLeft, moTableBottom, moTableWidth, -moTableHeight);
 }
 
 
 /******************************************
-**************** LINEGRAPH ****************
+********* Non Linear Progression **********
 ******************************************/
 
-color yearlyLinegraphCol;
+color yearlyNonLinearCol;
 color yearlyMOLineCol;
 color yearlyMOTxtCol;
-color yearlyGraphBG;
-color yearlyGraphOL;
 
 int coMaxRange[] =
 {16000, 750000, 200, 5000, 1000, 1500, 2500, 30000, 500, 50000, 40000, 10000, 1500,      // Stores the max range values for all countries
 30000, 600, 500, 300, 10000, 5000, 10000, 4000, 2000, 1000, 750, 15000, 15000, 60000};
 float totalSpent[] = new float[countryCount];      // Array to store total spent for each country
 
-void yearlyLinegraph()
+void yearlyNonLinearProg()
 {   
-   // Linegraph
+   // Non Linear
    float totalToDate = militaryExpenses.get(0).spent[countryID];
    totalSpent[0] = totalToDate;
    
@@ -294,36 +309,49 @@ void yearlyLinegraph()
       float prevY = map(prev.spent[countryID], 0, coMaxRange[countryID], yBoundryStart, yBoundryEnd);
       float nextY = map(next.spent[countryID], 0, coMaxRange[countryID], yBoundryStart, yBoundryEnd);
       
-      stroke(yearlyLinegraphCol);
+      stroke(yearlyNonLinearCol);
       strokeWeight(2);
       line(prevX, prevY, nextX, nextY);
        
       /********** MouseOver Feature **********/
       
-      int moDataOffset = 15;
-      PVector yearStringPos = new PVector(xBoundryStart + moDataOffset, boundrySize + moDataOffset);
-      PVector spentStringPos = new PVector(yearStringPos.x, yearStringPos.y + 25);
-      PVector totalStringPos = new PVector(yearStringPos.x, spentStringPos.y + 25);
-      String yearVal = "Year: " + (int)prev.year;
-      String spentVal = "Spent (Mil.€): " + prev.spent[countryID];
-      String totalVal = "Total To Date: " + totalToDate;
+      PVector yearLblPos = new PVector(moTableLeft + 100, height - (moTableHeight / 2));
+      PVector spentLblPos = new PVector(yearLblPos.x + 160, moTableTop + 25);
+      PVector spentValPos = new PVector(spentLblPos.x, spentLblPos.y + 20);
+      PVector totalLblPos = new PVector(spentLblPos.x + 150, spentLblPos.y);
+      PVector totalValPos = new PVector(totalLblPos.x, spentValPos.y);
       
-      stroke(yearlyMOLineCol);
-      fill(yearlyMOTxtCol);
-      textAlign(LEFT, CENTER);
-      textSize(19);
+      int yearLbl = (int)prev.year;
+      String spentLbl = "Spent (Mil.€)";
+      String totalLbl = "Total To Date";
+      float spentVal = prev.spent[countryID];
+      float totalVal = totalToDate;
       
       if (mouseY < yBoundryStart && mouseY > yBoundryEnd)
       {
          if (mouseX > prevX && mouseX < nextX)
          {       
             // MouseOver Line
+            strokeWeight(1);
+            stroke(yearlyMOLineCol);
             line(mouseX, yBoundryStart, mouseX, yBoundryEnd);
             
             // MouseOver Data
-            text(yearVal, yearStringPos.x, yearStringPos.y);
-            text(spentVal, spentStringPos.x, spentStringPos.y);
-            text(totalVal, totalStringPos.x, totalStringPos.y);
+            textAlign(CENTER, CENTER);
+            
+            fill(255,0,0);
+            textSize(30);
+            text(yearLbl, yearLblPos.x, yearLblPos.y);
+            
+            fill(255);
+            textSize(13);
+            text(spentLbl, spentLblPos.x, spentLblPos.y);
+            text(totalLbl, totalLblPos.x, totalLblPos.y);
+            
+            fill(0,50,255);
+            textSize(16);
+            text(spentVal, spentValPos.x, spentValPos.y);
+            text(totalVal, totalValPos.x, totalValPos.y);
          }
       }
       totalToDate += next.spent[countryID];
@@ -333,12 +361,12 @@ void yearlyLinegraph()
 
 
 /*****************************************
-*********** Standard Deviation ***********
+*********** Linear Progression ***********
 *****************************************/
 
-color yearlySDlineCol;
+color yearlyLinearLineCol;
 
-void yearlyStandardDev()
+void yearlyLinearProg()
 {
    // Getting the element[#] of first
    int yearCount = militaryExpenses.size();
@@ -364,7 +392,7 @@ void yearlyStandardDev()
    float endY = map(end.spent[countryID], 0, coMaxRange[countryID], yBoundryStart, yBoundryEnd);
       
    strokeWeight(0.7);
-   stroke(yearlySDlineCol);
+   stroke(yearlyLinearLineCol);
    line(startX, startY, endX, endY);
 
 }
@@ -482,11 +510,11 @@ void draw()
    if (pageKey == 1)
    {  
       background(yearlyBG);
-      yearlyAxis();
-      yearlyStandardDev();
-      yearlyLinegraph();
       yearlyTitle();
-      graphFeaturesMenu();
+      yearlyAxis();
+      graphMOTable();
+      yearlyLinearProg();
+      yearlyNonLinearProg();
       countryButtons();
       returnToMenu();
    }
