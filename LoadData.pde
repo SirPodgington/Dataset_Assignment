@@ -3,6 +3,7 @@ class LoadData
   float year;
   float spent[] = new float[countryCount];      // !*! Value stored is 1/1,000,000 of actual amount spent. Simplified to keep keep numbers small  *!* 
   float totSpentYearly;
+
   
   LoadData(String line)
   {
