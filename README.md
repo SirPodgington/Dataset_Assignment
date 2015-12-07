@@ -8,15 +8,19 @@ Unlike the barchart, the linegraph comes with toggleable features:  Mouse-over D
   
 # Screenshots
 ### Yearly Progression: Mouse-over Feature ###
-
+![] (http://i.imgur.com/LXNc1Us.png)
 
 ### Yearly Progression: Linear Comparison ###
+![] (http://i.imgur.com/xAcROqm.png)
 
 ### Yearly Progression: The Mean ###
+![] (http://i.imgur.com/ziHSasI.png)
 
 ### Yearly Progression: Correlation Vs Total Spent ###
+![] (http://i.imgur.com/EVUSe4J.png)
 
 ### Yearly Progression: Comparison Vs Average Spent ###
+![] (http://i.imgur.com/us6nWyI.png)
 
 ### Overall Comparison ###
 ![](http://i.imgur.com/ehBJbvA.png)  
