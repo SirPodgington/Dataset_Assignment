@@ -1,9 +1,4 @@
-/*
-REFACTOR CODE:  Split the axis from the drawLineGraph method and give it it's own.  Then have other methods to load the Linear Progression (separate), min/max/avg (onto the defualt linegraph)
-
-Add music player (if i can figure it out, if not... thinking of other ideas still)
-
-*/
+// Add Average to yearly progression (called mean?)
 
 
 String countryAbbrev[] = {"CAN", "USA", "AL", "BE", "BG", "HR", "CZ", "DK", "EE", "FR", "GER", "GR", "HU", "IT", "LV", "LT", "LU", "NL", "NO", "PL", "PT", "RO", "SK", "SI", "ES", "TR", "UK"};
@@ -15,24 +10,24 @@ void setup()
    
    pageKey = 0;
    
-   // Yearly Linegraph Properties
+   // Yearly Progression Properties
    yearlyBG = loadImage("Navy_Blue_Background.jpg");
    yearlyBG.resize(width, height);
    yearlyGraphBG = color(20);
    yearlyGraphOL = color(105);
-   yearlyNonLinearCol = color(0,255,255);      // Graph Line
-   yearlyMOLineCol = color(225);    // MouseOver Line
-   yearlyMOTxtCol = color(225);     // MouseOver Text
-   
-   // Yearly Linear Progression Properties
-   yearlyLinearLineCol = color(0,50,255);
+   yearlyMOLineCol = color(225);
+   yearlyMOTxtCol = color(225);
+   yearlyNonLinearCol = color(0,255,255);
+   yearlyLinearLineCol = color(0,25,255);
+   linearToggle = false;    // Set linear comparison & mouseover to off on startup
+   moToggle = false;
    
    // Yearly Title Properties
    yearlyTitleCol = color(255);
    yearlyTitleSize = 26;
    
    // Yearly Axis Properties
-   yearlyAxisCol = color(255);      // Graph Axis
+   yearlyAxisCol = color(255);
    yearlyAxisLblCol = color(255);
    yearlyAxisLblSize = 16;
    
@@ -42,19 +37,32 @@ void setup()
    coButtonLblCol = color(255);     // Label
    coButtonLblSize = 12;
    
-   // Overall Spent Linegraph
+   // Overall Spent 
    ovrChartAxisCol = color(127);
-   ovrChartBG = color(0);
-   
-   // Overall Spent Comparison
-   overallBG = loadImage("orange_background.jpg");
+   ovrChartBG = color(255);
+   overallBG = loadImage("bluebackground.png");
    overallBG.resize(width, height);
    
-   // Main Menu Colours & Font Size
-   menuOptsCol = color(0,255,255);
-   menuOptsTxtSize = 30;
-   
    loadExpensesCountry();   // Load Data Into ArrayLists
+   
+   
+  // Calculating Country Totals
+  for (int i = 0; i < countryCount; i++)
+  {
+      for (int j = 0; j < militaryExpenses.size(); j++)
+      {
+         LoadData year = militaryExpenses.get(j);
+         countryTotal[i] += year.spent[i];
+      }
+      combinedSum += countryTotal[i];
+  }
+  
+  // Calculating Country Percent vs all
+  for (int i = 0; i < countryTotal.length; i++)
+  {
+      float val = map(countryTotal[i], 0, combinedSum, 0, 100);
+      countryPC[i] = nf(val, 2, 1);      // Formatting percentage output
+  }
 }
 
 
@@ -63,6 +71,8 @@ void setup()
     RETURN TO MENU    *************************************************************************************************************************************************************************
                       *************************************************************************************************************************************************************************
 ************************/
+// Indicates to user what key to press to return to main menu
+// Sets pagekey to main menu's if the key is pressed
 
 color retToMenuCol;
 int retToMenuSize;
@@ -90,33 +100,45 @@ void returnToMenu()
       MAIN MENU       *************************************************************************************************************************************************************************
                       *************************************************************************************************************************************************************************
 ************************/
+// Menu the user is greeted with at startup. Allows user to navigate to desired page
 
 color menuOptsCol;
-int menuOptsTxtSize;
+color optBGCol;
+color optOLCol;
 
 void drawMenu()
 {
-   float textX = width * 0.3f;
-   float opt1Y = height * 0.4f;
-   float opt2Y = height * 0.5f;
-   float opt3Y = height * 0.6f;
-   String option1 = "Military Expenses Per Year [Press 1]";
-   String option2 = "Overall Military Expenses [Press 2]";
-   String option3 = "Exit [Press 3]";
+   String options[] = {"Military Expenses (Yearly Progression)", "Military Expenses (Overall Comparison)", "Exit"};
    
-   fill(menuOptsCol);
-   textAlign(LEFT,CENTER);
-   textSize(menuOptsTxtSize);
-   
-   text(option1, textX, opt1Y);
-   text(option2, textX, opt2Y);
-   text(option3, textX, opt3Y);
-   
-   if (keyPressed)
+   for (int i = 0; i < 3; i++)
    {
-      if (key == '1') pageKey = 1;
-      if (key == '2') pageKey = 2;
-      if (key == '3') System.exit(0);
+      float optSize = height / 3;
+      float startY = optSize * i;
+      
+      if (mouseY > startY && mouseY < startY + optSize)
+      {
+         optBGCol = color(45);
+         optOLCol = color(0,150,255);
+         menuOptsCol = optOLCol;
+         
+         if (mousePressed)
+            pageKey = i+1;
+      }
+      else
+      {
+         optBGCol = color(0,150,255);
+         optOLCol = color(45);
+         menuOptsCol = optOLCol;
+      }
+      
+      fill(optBGCol);
+      stroke(optOLCol);
+      rect(0, startY, width, optSize);
+      
+      textAlign(CENTER,CENTER);
+      textSize(40);
+      fill(menuOptsCol);
+      text(options[i], width/2, startY + (optSize/2));
    }
 }
 
@@ -127,6 +149,7 @@ void drawMenu()
       LOAD DATA       *************************************************************************************************************************************************************************
                       *************************************************************************************************************************************************************************
 ************************/
+// Loads the dataset into the arraylist
 
 ArrayList<LoadData> militaryExpenses = new ArrayList<LoadData>();
 
@@ -143,46 +166,20 @@ void loadExpensesCountry()
 
 
 /************************
-                      *************************************************************************************************************************************************************************
-   YEARLY LINEGRAPH   *************************************************************************************************************************************************************************
-                      *************************************************************************************************************************************************************************
+                        *************************************************************************************************************************************************************************
+   YEARLY Progression   *************************************************************************************************************************************************************************
+                        *************************************************************************************************************************************************************************
 ************************/
+// The Yearly Progression page.  Allows you to see the yearly progression of military expenditure in the countries over the course of 1949-2014.
+// Includes country selection via buttons, a mouse-over feature displaying data @ mouse position, and linear comparison (to primary data)
 
 PImage yearlyBG;    // Background
 
-/*************************************
-*************** TITLE ****************
-*************************************/
-
-String country[] = 
-{"Canada","USA","Albania","Belgium","Bulgaria","Croatia","Czech Rep","Denmark","Estonia",
-"France","Germany","Greece","Hungary","Italy","Latvia","Lithuania","Luxembourg","Netherlands",
-"Norway","Poland","Portugal","Romania","Slovakia","Slovenia","Spain","Turkey","UK"};
-int countryCount = country.length;
-color yearlyTitleCol;
-int yearlyTitleSize;
-
-void yearlyTitle()
-{
-   // Return To Menu Properties
-   // Including this here as it is placed close to title at top of the page
-   retToMenuCol = color(175);
-   retToMenuSize = 14;
-   menuPos = new PVector(width - 20, buttonHeight + 20);
-   
-   textAlign(CENTER, CENTER);
-   textSize(yearlyTitleSize);
-   fill(yearlyTitleCol);
-   
-   String title = country[countryID];
-   PVector titlePos = new PVector(width/2, 40);
-   text(title.toUpperCase(), titlePos.x, titlePos.y);
-}
-
 
 /*************************************
-*************** AXIS *****************
+*************** GRAPH ****************
 *************************************/
+// Draws the graph background, title, axis & sets the graph boundry
 
 color yearlyAxisCol;
 color yearlyAxisLblCol;
@@ -198,15 +195,40 @@ int yBoundryStart;
 int yBoundryEnd;
 int yLength;
 
-void yearlyAxis()
+String country[] = 
+{"Canada","USA","Albania","Belgium","Bulgaria","Croatia","Czech Rep","Denmark","Estonia",
+"France","Germany","Greece","Hungary","Italy","Latvia","Lithuania","Luxembourg","Netherlands",
+"Norway","Poland","Portugal","Romania","Slovakia","Slovenia","Spain","Turkey","UK"};
+int countryCount = country.length;
+color yearlyTitleCol;
+int yearlyTitleSize;
+
+void yearlyGraph()
 { 
-   // Graph Background
+   /********* Return To Menu Properties *********/
+   
+   retToMenuCol = color(175);
+   retToMenuSize = 14;
+   menuPos = new PVector(width - 20, buttonHeight + 20);
+   
+   /********* Graph Background *********/
+   
    strokeWeight(0.5);
    stroke(yearlyGraphOL);
    fill(yearlyGraphBG);
    rect(xBoundryStart, yBoundryEnd, xLength, yLength);
    
-   // Boundry Properties
+   /********* Graph Title *********/
+   
+   String title = country[countryID];
+   PVector titlePos = new PVector(width/2, 55);
+   textAlign(CENTER, CENTER);
+   textSize(yearlyTitleSize);
+   fill(yearlyTitleCol);
+   text(title.toUpperCase(), titlePos.x, titlePos.y);
+   
+   /********* Boundry Properties *********/
+   
    boundrySize = width / 10;
    xBoundryStart = boundrySize;
    xBoundryEnd = width - boundrySize;
@@ -214,8 +236,9 @@ void yearlyAxis()
    yBoundryStart = height - boundrySize;
    yBoundryEnd = boundrySize;
    yLength = yBoundryStart - yBoundryEnd;
-     
-   // Axis Properties
+    
+   /********* AXIS **********/
+   
    strokeWeight(2);
    stroke(yearlyAxisCol);
    fill(yearlyAxisLblCol);
@@ -248,41 +271,130 @@ void yearlyAxis()
    // Y-Axis end marker
    line(xBoundryStart, yBoundryEnd, xBoundryStart-markerSize, yBoundryEnd);
    text(yAxisEndVal, xBoundryStart - yTextOffset, yBoundryEnd);
+   
+   /********** MouseOver Table **********/
+   
+   moTableWidth = width - 450;
+   moTableHeight = boundrySize * 0.7;
+   moTableLeft = (width - moTableWidth) * .5f;
+   moTableRight = moTableLeft + moTableWidth;
+   moTableTop = height - moTableHeight;
+   moTableBottom = height;
+   
+   // If MouseOver feature is toggled on -> Draw MouseOver table
+   if (moToggle)
+   {
+      strokeWeight(1);
+      stroke(105);
+      fill(yearlyGraphBG);
+      rect(moTableLeft, moTableBottom, moTableWidth, -moTableHeight);
+   }
 }
 
 
-/*******************************************
-********** Graph MouseOver Table ***********
-*******************************************/
 
-float moTableWidth;
-float moTableHeight;
-float moTableLeft;
-float moTableRight;
-float moTableTop;
-float moTableBottom;
+/****************************************
+************* Graph Buttons *************
+****************************************/
+// Adds toggle buttons to the graph, which allow the user to toggle the MouseOver & Linear Comparison features on/off.
 
-void graphMOTable()
+boolean linearToggle;
+boolean moToggle;
+
+void graphButtons()
 {
-  moTableWidth = width - 450;
-  moTableHeight = boundrySize * 0.7;
-  
-  moTableLeft = (width - moTableWidth) * .5f;
-  moTableRight = moTableLeft + moTableWidth;
-  moTableTop = height - moTableHeight;
-  moTableBottom = height;
-  
-  strokeWeight(1);
-  stroke(105);
-  fill(yearlyGraphBG);
-  
-  rect(moTableLeft, moTableBottom, moTableWidth, -moTableHeight);
+   float buttonW = 40;
+   float buttonH = 18;
+   
+   /********** LINEAR BUTTON **********/
+   
+   textAlign(LEFT,CENTER);
+   textSize(10);
+   text("Toggle Linear Comparison: ", xBoundryStart+20, yBoundryEnd+20);
+   
+   float linearX1 = xBoundryStart + 165;
+   float linearY1 = yBoundryEnd + 12;
+   color linearButtonCol = color(0);
+   
+   // If Mouse Over Button ... / Else ...
+   if (mouseX > linearX1 && mouseX < linearX1 + buttonW && mouseY > linearY1 && mouseY < linearY1 + buttonH)
+   {
+      linearButtonCol = color(0,150,255);
+      if (mousePressed)
+         linearToggle = !linearToggle;
+   }
+   else
+   {
+      linearButtonCol = color(0,0,255);
+   }
+   
+   // Setting Button Label
+   String linearLbl;
+   if (linearToggle)
+      linearLbl = "ON";
+   else
+      linearLbl = "OFF";
+   
+   // Draw Button
+   fill(linearButtonCol);
+   stroke(linearButtonCol);
+   rect(linearX1, linearY1, buttonW, buttonH);
+   
+   // Draw Button Label
+   fill(255);
+   textAlign(CENTER,CENTER);
+   textSize(12);
+   text(linearLbl, linearX1 + (buttonW/2), linearY1 + (buttonH/2));
+   
+   /********** MouseOver Button **********/
+   
+   textAlign(LEFT,CENTER);
+   textSize(10);
+   text("Toggle Mouse-Over Feature: ", xBoundryStart+20, yBoundryEnd+50);
+   
+   float moX1 = xBoundryStart + 165;
+   float moY1 = yBoundryEnd + 42;
+   color moButtonCol = color(0);
+   
+   // If Mouse Over Button ... / Else ...
+   if (mouseX > moX1 && mouseX < moX1 + buttonW && mouseY > moY1 && mouseY < moY1 + buttonH)
+   {
+      moButtonCol = color(0,150,255);
+      if (mousePressed)
+         moToggle = !moToggle;
+   }
+   else
+   {
+      moButtonCol = color(0,0,255);
+   }
+   
+   // Setting Button Label
+   String moLbl;
+   if (moToggle)
+      moLbl = "ON";
+   else
+      moLbl = "OFF";
+   
+   // Draw Button
+   fill(moButtonCol);
+   stroke(moButtonCol);
+   rect(moX1, moY1, buttonW, buttonH);
+   
+   // Draw Button Label
+   fill(255);
+   textAlign(CENTER,CENTER);
+   textSize(12);
+   text(moLbl, moX1 + (buttonW/2), moY1 + (buttonH/2));
+   
 }
+
 
 
 /******************************************
 ********* Non Linear Progression **********
 ******************************************/
+// Displays the primary data in the form of a non-linear linegraph
+// Calculates MouseOver data
 
 color yearlyNonLinearCol;
 color yearlyMOLineCol;
@@ -291,14 +403,19 @@ color yearlyMOTxtCol;
 int coMaxRange[] =
 {16000, 750000, 200, 5000, 1000, 1500, 2500, 30000, 500, 50000, 40000, 10000, 1500,      // Stores the max range values for all countries
 30000, 600, 500, 300, 10000, 5000, 10000, 4000, 2000, 1000, 750, 15000, 15000, 60000};
-float totalSpent[] = new float[countryCount];      // Array to store total spent for each country
+
+float moTableWidth;
+float moTableHeight;
+float moTableLeft;
+float moTableRight;
+float moTableTop;
+float moTableBottom;
 
 void yearlyNonLinearProg()
-{   
-   // Non Linear
+{
    float totalToDate = militaryExpenses.get(0).spent[countryID];
-   totalSpent[0] = totalToDate;
    
+   /********** Linegraph **********/
    for (int i = 1; i < militaryExpenses.size(); i++)
    {
       LoadData prev = militaryExpenses.get(i-1);
@@ -313,9 +430,8 @@ void yearlyNonLinearProg()
       strokeWeight(2);
       line(prevX, prevY, nextX, nextY);
        
-      /********** MouseOver Feature **********/
-      
-      PVector yearLblPos = new PVector(moTableLeft + 100, height - (moTableHeight / 2));
+      /********** MouseOver Data **********/
+      PVector yearLblPos = new PVector(moTableLeft + 100, height - 38);
       PVector spentLblPos = new PVector(yearLblPos.x + 160, moTableTop + 25);
       PVector spentValPos = new PVector(spentLblPos.x, spentLblPos.y + 20);
       PVector totalLblPos = new PVector(spentLblPos.x + 150, spentLblPos.y);
@@ -323,11 +439,11 @@ void yearlyNonLinearProg()
       
       int yearLbl = (int)prev.year;
       String spentLbl = "Spent (Mil.€)";
-      String totalLbl = "Total To Date";
+      String totalLbl = "Total To Date (Mil.€)";
       float spentVal = prev.spent[countryID];
       float totalVal = totalToDate;
       
-      if (mouseY < yBoundryStart && mouseY > yBoundryEnd)
+      if (moToggle && mouseY < yBoundryStart && mouseY > yBoundryEnd)
       {
          if (mouseX > prevX && mouseX < nextX)
          {       
@@ -339,16 +455,16 @@ void yearlyNonLinearProg()
             // MouseOver Data
             textAlign(CENTER, CENTER);
             
-            fill(255,0,0);
+            fill(0,150,255);
             textSize(30);
             text(yearLbl, yearLblPos.x, yearLblPos.y);
             
-            fill(255);
+            fill(0,150,255);
             textSize(13);
             text(spentLbl, spentLblPos.x, spentLblPos.y);
             text(totalLbl, totalLblPos.x, totalLblPos.y);
             
-            fill(0,50,255);
+            fill(255);
             textSize(16);
             text(spentVal, spentValPos.x, spentValPos.y);
             text(totalVal, totalValPos.x, totalValPos.y);
@@ -356,36 +472,45 @@ void yearlyNonLinearProg()
       }
       totalToDate += next.spent[countryID];
    }
-   totalSpent[countryID] = totalToDate;
 }
+
 
 
 /*****************************************
 *********** Linear Progression ***********
 *****************************************/
+// Straight line from the first to last year, used to compare against the non-linear progression
+// This allows you to see more clearly the spikes of increase/decrease to money spent over the years
 
 color yearlyLinearLineCol;
 
 void yearlyLinearProg()
 {
-   // Getting the element[#] of first
    int yearCount = militaryExpenses.size();
    int endIndex = yearCount - 1;
    int startIndex = -1;
+   
+   // First first element index that has a value
    for (int i = 0; startIndex == -1; i++)
    {
       LoadData getVal = militaryExpenses.get(i);
       
       if (getVal.spent[countryID] != 0)
       {
-         if (i == 0) startIndex = i;
-         else startIndex = i - 1;
+         // If index is not [0] then decrement it by one, so that the line starts from "0 spent" (year prev to first year with expenditure)
+         // This is in place to provide a more accurate linear comparison
+         if (i == 0)
+            startIndex = i;
+         else 
+            startIndex = i - 1;
       }
    }
    
    LoadData start = militaryExpenses.get(startIndex);
    LoadData end = militaryExpenses.get(endIndex);
    
+   // Getting the co-ords to draw the lines.
+   // The co-ordinates are mapped so that they fit the screen accordingly @ the desired scale
    float startX = map(startIndex+1, 1, yearCount, xBoundryStart, xBoundryEnd);
    float endX = map(yearCount, 1, yearCount, xBoundryStart, xBoundryEnd);
    float startY = map(start.spent[countryID], 0, coMaxRange[countryID], yBoundryStart, yBoundryEnd);
@@ -398,27 +523,30 @@ void yearlyLinearProg()
 }
 
 
+
 /************************************************
 **************** COUNTRY BUTTONS ****************
 ************************************************/
+// Draws the country buttons at the top of the screen
+// The buttons allow the user to select the country for which they want to view data on
 
 color coButtonCol;
 color coButtonMOCol;
 color coButtonLblCol;
 int coButtonLblSize;
 int buttonHeight = 20;
-
 int countryID = 0;      // References the arraylist position of the requested country -> Initialised to 0 (first country position)
 
 void countryButtons()
 {
    float buttonWidth = (float) width / countryCount;
 
-   for (int i = 0; i < countryCount; i++)   // Button For Each Country
+   // Drawing Button For Each Country
+   for (int i = 0; i < countryCount; i++)
    {
       float buttonX = buttonWidth * i;
       
-      // If Mouse Is Over Button -> If Button Pressed | Else..
+      // Setting Button Colours & Getting Requested CountryID
       if (mouseX > buttonX && mouseX < (buttonX + buttonWidth) && mouseY < buttonHeight)
       {
          fill(coButtonMOCol);
@@ -443,49 +571,87 @@ void countryButtons()
 }
 
 
+
 /************************
-                      *************************************************************************************************************************************************************************
-     Overall Spent    *************************************************************************************************************************************************************************
-     Progression &    *************************************************************************************************************************************************************************
-      Comparison      *************************************************************************************************************************************************************************
-                      *************************************************************************************************************************************************************************
+                        ***********************************************************************************************************************************************************************
+   Overall Comparison   ***********************************************************************************************************************************************************************
+                        ***********************************************************************************************************************************************************************
 ************************/
+// A barchart conveying the difference between the amount each country spent over the timelapse
 
 PImage overallBG;
 color ovrChartBG;
 color ovrChartAxisCol;
+float combinedSum;       // total spent of each country combined
+float countryTotal[] = new float[countryCount];
+String countryPC[] = new String[countryCount];
+
 
 void drawOverall()
 {
-  // Return To Menu Colour & Font Size
+   // Return To Menu Properties
    retToMenuCol = color(0);
    retToMenuSize = 20;
-   menuPos = new PVector(width / 2, height * 0.95f);
-  
-  //////////////////////////
-  ///////  BARCHART  ///////
-  //////////////////////////
-  // Barchart comparing overall spent by all countries combined each year over the course of the timelapse
+   menuPos = new PVector(width - 20, height * 0.05f);
   
   /********** Boundry **********/
   float boundryStart = 0;
   float boundryEnd = width;
-  float boundryPos = height * 0.33f;
+  float boundryPos = height * 0.66f;
   fill(ovrChartBG);
   stroke(ovrChartBG);
-  rect(boundryStart,0,width,boundryPos); // background for the barchart
+  rect(boundryStart,0,width,boundryPos);    // Background for the barchart
   
-  /********** Barchart **********/
+   /********* Page Title *********/
+   fill(45);
+   textSize(40);
+   textAlign(CENTER,CENTER);
+   text("Military Expenditure (1949 - 2014)", width/2, height/4);
   
+  /********* Data Headers **********/
+  fill(45);
+  textAlign(CENTER,CENTER);
+  textSize(16);
+  text("Percent (%)", width/2, boundryPos + 50);
+  text("Amount Spent (Mil.€)", width/2, boundryPos + 100);
   
-  
-  ///////////////////////
-  /////  COMPARISON /////
-  ///////////////////////
-  // Circles or something similar with size being the default comparator, comparing overall spent by all countries
-  
-  
+  /********** Drawing Barchart & Data **********/
+  float barWidth = (float) width / countryCount;
+  for (int i = 0; i < countryCount; i++)
+  {
+      float x = barWidth * i;
+      float y = map(countryTotal[i], 0, 15000000, 0, boundryPos);
+      float r = map(countryTotal[i], 0, 15000000, 1, 255);   // Colour scales from darkred(low spent) -> brightred(high spent)
+      
+      // Barchart
+      fill(0,255-r,255-r);
+      rect(x, boundryPos, barWidth, -y);
+      
+      // Country Name
+      PVector coNamePos = new PVector(x + (barWidth/2), boundryPos + 20);
+      textSize(14);
+      textAlign(CENTER,CENTER);
+      text(countryAbbrev[i], coNamePos.x, coNamePos.y);
+      
+      // Country Percent (out of all countries' total spent)
+      PVector coPCPos = new PVector(coNamePos.x, coNamePos.y + 50);
+      textSize(11);
+      textAlign(CENTER,CENTER);
+      text(countryPC[i], coPCPos.x, coPCPos.y);
+      
+      // Total Spent (Mil.€)
+      PVector coTotPos = new PVector (coNamePos.x, coPCPos.y + 50);
+      pushMatrix();
+      translate(coTotPos.x, coTotPos.y);
+      rotate(-HALF_PI);
+      textSize(11);
+      textAlign(RIGHT,CENTER);
+      text(countryTotal[i], 0, 0);
+      popMatrix();
+      
+   }
 }
+
 
 
 /************************
@@ -499,32 +665,36 @@ int pageKey;   // Stores Page IDs
 void draw()
 {
   
-   // MAIN MENU
+   /********** MAIN MENU **********/
+   // If Pagekey is set to 0, the Main Menu is displayed on the screen
    if (pageKey == 0)
    {
       background(0);
       drawMenu();  
    }
   
-   // Linegraph page
+   /********** Yearly Progression **********/
    if (pageKey == 1)
    {  
       background(yearlyBG);
-      yearlyTitle();
-      yearlyAxis();
-      graphMOTable();
-      yearlyLinearProg();
+      yearlyGraph();
+      graphButtons();
+      if (linearToggle)      // If Linear is toggled on -> draw linear progression line
+         yearlyLinearProg();
       yearlyNonLinearProg();
       countryButtons();
       returnToMenu();
    }
  
-   // Overall page
+   /********** Overall Comparison **********/
    if (pageKey == 2)
    {
       background(overallBG);
       drawOverall();
       returnToMenu();
    }
+   
+   if (pageKey == 3)
+      System.exit(0);
    
 }
