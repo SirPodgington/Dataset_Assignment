@@ -19,8 +19,6 @@ Unlike the barchart, the linegraph comes with toggleable features:  Mouse-over D
 ### Yearly Progression: Comparison Vs Average Spent ###
 
 ### Overall Comparison ###
-![](\screenshots\overal_comparison)  
-
-![](\screenshots\dataset_assignment\overal_comparison)
+![](http://i.imgur.com/ehBJbvA.png)  
 
 # Conclusion
