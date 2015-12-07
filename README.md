@@ -26,3 +26,11 @@ Unlike the barchart, the linegraph comes with toggleable features:  Mouse-over D
 ![](http://i.imgur.com/ehBJbvA.png)  
 
 # Conclusion
+Upon completion of this assignment I have learned a great deal in regards to writing programs.  First and foremost - Project planning is important!  For this assignment I done absolutely no planning 
+whatsoever, I just kept thinking of things to do and add as I was progressing with it and as the program grew it became increasingly tedious to make the edits I wanted or to add things to X or Y. 
+I had to refactor my code countless times when I ran into problems here and there, which ultimately was a pain.  I also lost track of where certain features were in the code, which added to the pain.  
+
+All in all I am happy with how the assignment came out.  I've learnt some pretty cool data viz skills while working on it which I'm sure will come in handy in the future. 
+There were some visualizations I would of liked to add to the program, along with some other features, however I was under far too much pressure trying to get it ready in 
+time.  This was partly due to lack of planning, but also due to getting a late start on the assignment. Looking back now, I definitely plan on putting a lot more work into 
+the planning stage, and getting an earlier start to things.
