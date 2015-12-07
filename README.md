@@ -1,19 +1,24 @@
 # Dataset_Assignment [DT228/2 - OOP]
-This is the first OOP Assignment.
+# Description
+A data visualization program that reads in a dataset and then visualizeses the data in different ways.  For this assignment I chose a dataset containing military expenditure 
+for various countries over the course of 1949-2014.  The program visualizeses the data in 2 different ways. The first is a linegraph showing the progression of the yearly expenditure of all countries. 
+The second is a barchart comparing the total spent by each country over the timelapse.  
+  
+Unlike the barchart, the linegraph comes with toggleable features:  Mouse-over Data, Linear Comparison, The Mean Of Expenses, Correlation Vs. Total Spent (All Countries), Comparison Vs. Average Spent (All Countries Each Year).  
+  
+# Screenshots
+### Yearly Progression: Mouse-over Feature ###
 
-# Brief Description of Assignment
-For this assignment we are required to construct a program in Java (using the Processing application) to load 
-in a dataset of our choice, store the data and then visualise the data in various ways 
-(Line graphs, bar charts, pie charts etc).
 
-# Planning
-I will be working with a dataset of military expenses for various countries.
-The dataset lists the spending of 26 countries over the course of 60 years or so.
+### Yearly Progression: Linear Comparison ###
 
-I plan on storing the data in 2 formats:
-	<1> By Year (LineGraphs [one for each country])
-	<2> By Country (Bar Chart / Squares [size depicting value, ordered Most->Least])
-This will allow the user to view how the spending of each country progresses over time,  see how the
-spending of each country compares to one another, and also view/compare the overall spent per year.
+### Yearly Progression: The Mean ###
 
-**Find some datasets to compare vs current. I.e. Rise of terrorist activity in america VS military expense in america etc
+### Yearly Progression: Correlation Vs Total Spent ###
+
+### Yearly Progression: Comparison Vs Average Spent ###
+
+### Overall Comparison ###
+![Alt text](http://imgur.com/ehBJbvA)
+
+# Conclusion
